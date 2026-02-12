@@ -43,7 +43,6 @@ export type BundleEntry = {
   optionItemIds?: string[]
 
   requiredPerSubmission?: number // default 1
-  requiredSubmissions?: number // default 1
 
   notes?: string
 }
