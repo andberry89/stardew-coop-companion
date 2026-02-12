@@ -1,3 +1,5 @@
+import type { RoomId } from '@/types/rooms'
+
 export type Season = 'spring' | 'summer' | 'fall' | 'winter' | 'any'
 
 export type ItemType =
@@ -25,6 +27,7 @@ export type Item = {
 export type Bundle = {
   id: string
   name: string
+  room: RoomId
   reward: string
   rewardImg: string
   requiredCount: number
@@ -44,3 +47,11 @@ export type BundleEntry = {
 
   notes?: string
 }
+
+export type Room =
+  | 'pantry'
+  | 'crafts-room'
+  | 'fish-tank'
+  | 'boiler-room'
+  | 'bulletin-board'
+  | 'vault'

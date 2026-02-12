@@ -70,8 +70,8 @@ export const items: Item[] = [
     sources: ['Sheep', 'Rabbits'],
   },
   {
-    id: 'duck-eggs',
-    name: 'Duck Eggs',
+    id: 'duck-egg',
+    name: 'Duck Egg',
     type: 'animal',
     seasons: ['any'],
     sources: ['Drop from Ducks'],
