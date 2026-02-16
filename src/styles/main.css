@@ -1,4 +1,28 @@
+@config '../../tailwind.config.ts';
+
+@import 'tailwindcss';
 @import './tokens.css';
 @import './base.css';
 
-@import 'tailwindcss';
+@font-face {
+  font-family: 'Stardew Bold';
+  src: url('/fonts/svbold.woff2') format('woff2');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Stardew Thin';
+  src: url('/fonts/svthin.woff2') format('woff2');
+  font-display: swap;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: rgb(16, 138, 251);
+  background-image: url('/images/stardew-bg.png');
+  background-attachment: fixed;
+  background-size: cover;
+  image-rendering: pixelated;
+  fill: #44403c;
+}
