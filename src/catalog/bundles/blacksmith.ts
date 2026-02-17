@@ -2,7 +2,7 @@ import type { Bundle, BundleEntry } from '@/types/bundles'
 
 export const bundle: Bundle = {
   id: 'blacksmith-bundle',
-  name: "Blacksmith's Bundle",
+  name: "Blacksmith's",
   room: 'boiler-room',
   reward: 'furnace (1)',
   rewardImg: 'furnace.png',

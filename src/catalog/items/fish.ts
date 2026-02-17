@@ -210,4 +210,11 @@ export const items: Item[] = [
     seasons: ['any'],
     sources: ['Lake | 6am - 2am | All Seasons'],
   },
+  {
+    id: 'sandfish',
+    name: 'Sandfish',
+    type: 'fish',
+    seasons: ['any'],
+    sources: ['The Desert | 6am - 8pm | All Seasons'],
+  },
 ]

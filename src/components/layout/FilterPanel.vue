@@ -1,6 +1,6 @@
 <template>
   <section
-    class="w-64 border-menu grad-background px-4 py-2 rounded-lg flex flex-col gap-4 font-stardew-thin text-orange-950"
+    class="w-46 border-menu grad-background p-2 rounded-lg flex flex-col gap-4 font-stardew-thin text-orange-950 h-max"
   >
     <h2 class="font-stardew-bold text-center">Filter</h2>
 
@@ -10,7 +10,7 @@
       @click="$emit('seasonChange', s.key)"
       :class="btnClass(s.key === props.selected)"
     >
-      <img :src="s.icon" :alt="s.name" class="w-6 h-6" />
+      <img :src="s.icon" :alt="s.name" class="w-8 h-6" />
       {{ s.name }}
     </button>
   </section>
@@ -26,7 +26,7 @@ const props = defineProps({
 
 function btnClass(isActive: boolean) {
   return [
-    'border-menu bg-amber-200 p-2 flex gap-2 items-center w-full transition-opacity duration-150',
+    'border-menu bg-amber-200 p-1 flex gap-2 items-center w-full transition-opacity duration-150 text-xs',
     isActive ? 'opacity-100' : 'opacity-40 hover:opacity-60',
   ].join(' ')
 }

@@ -2,7 +2,7 @@ import type { Bundle, BundleEntry } from '@/types/bundles'
 
 export const bundle: Bundle = {
   id: 'ocean-fish-bundle',
-  name: 'Ocean Fish Bundle',
+  name: 'Ocean Fish',
   room: 'fish-tank',
   reward: 'Warp Totem: Beach (5)',
   rewardImg: 'warp-totem-beach.png',

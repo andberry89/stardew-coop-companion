@@ -1,20 +1,22 @@
 <template>
-  <section class="space-y-4">
-    <div class="flex justify-between items-center">
+  <section class="space-y-4 p-1 border-menu grad-background">
+    <div class="px-4 py-2 rounded-lg flex justify-between items-center">
       <h2 class="text-xl font-stardew-bold text-orange-950">
-        {{ roomSection.room.name }}
+        {{ props.roomSection.room.name }}
       </h2>
 
-      <span class="text-sm text-zinc-500">
-        {{ roomSection.progress.completedBundles }}/{{ roomSection.progress.totalBundles }}
+      <span class="text-sm font-stardew-thin text-zinc-500">
+        {{ props.roomSection.progress.completedBundles }}/{{
+          props.roomSection.progress.totalBundles
+        }}
       </span>
     </div>
 
-    <img :src="roomImg" class="w-full object-cover rounded-lg" alt="" />
+    <!-- <img :src="roomImg" class="w-full object-cover rounded-lg" alt="" /> -->
 
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-4">
+    <div class="grid gap-1 sm:grid-cols-2 lg:grid-cols-3 mt-4">
       <BundleCard
-        v-for="bundleSection in roomSection.bundles"
+        v-for="bundleSection in props.roomSection.bundles"
         :key="bundleSection.bundle.id"
         :bundle-section="bundleSection"
       />
@@ -23,13 +25,15 @@
 </template>
 
 <script setup lang="ts">
+import BundleCard from './BundleCard.vue'
+
 const props = defineProps({
   roomSection: Object,
 })
 
-const roomImg = computed(() =>
-  props.roomSection.progress.isComplete
-    ? props.roomSection.room.imgAfter
-    : props.roomSection.room.imgBefore,
-)
+// const roomImg = computed(() =>
+//   props.roomSection.progress.isComplete
+//     ? props.roomSection.room.imgAfter
+//     : props.roomSection.room.imgBefore,
+// )
 </script>

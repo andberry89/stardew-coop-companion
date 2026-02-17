@@ -2,69 +2,10 @@
   <div class="max-w-7xl mx-auto p-4 relative flex flex-col gap-6">
     <AppHeader />
     <ViewToggle v-model="view" />
-    <main class="flex gap-4">
+    <main class="flex gap-2">
       <FilterPanel :selected="selectedSeason" @seasonChange="selectedSeason = $event" />
-      <section class="flex flex-col flex-1">
-        <div class="flex flex-col border-menu grad-background px-4 py-2 rounded-lg">
-          <h2 class="text-2xl font-stardew-bold text-orange-950 p-4">>Crafts Room</h2>
-          <div class="flex gap-4">
-            <div class="flex flex-col justify-start gap-4 bg-amber-200 p-4 border-menu w-[40%]">
-              <h3 class="text-lg font-stardew-bold text-orange-950 mb-4">Spring Foraging</h3>
-              <div class="flex justify-between">
-                <div class="flex flex-col justify-center text-center">
-                  <div class="bg-orange-300 border-menu flex justify-center p-0.5">
-                    <img
-                      src="/images/items/wild-horseradish.png"
-                      alt="Wild Horseradish"
-                      class="size-12"
-                    />
-                  </div>
-                  <p
-                    class="font-quicksand text-sm w-18 overflow-hidden overflow-ellipsis font-display whitespace-nowrap"
-                  >
-                    Wild Horseradish
-                  </p>
-                </div>
-                <div class="flex flex-col justify-center text-center">
-                  <div class="bg-orange-300 border-menu flex justify-center p-0.5">
-                    <img src="/images/items/daffodil.png" alt="Daffodil" class="size-12" />
-                  </div>
-                  <p
-                    class="font-quicksand text-sm w-18 overflow-hidden overflow-ellipsis font-display whitespace-nowrap"
-                  >
-                    Daffodil
-                  </p>
-                </div>
-                <div class="flex flex-col justify-center text-center">
-                  <div class="bg-orange-300 border-menu flex justify-center p-0.5">
-                    <img src="/images/items/leek.png" alt="Leek" class="size-12" />
-                  </div>
-                  <p
-                    class="font-quicksand text-sm w-18 overflow-hidden overflow-ellipsis font-display whitespace-nowrap"
-                  >
-                    Leek
-                  </p>
-                </div>
-                <div class="flex flex-col justify-center text-center">
-                  <div class="bg-orange-300 border-menu flex justify-center p-0.5">
-                    <img src="/images/items/dandelion.png" alt="Dandelion" class="size-12" />
-                  </div>
-                  <p
-                    class="font-quicksand text-sm w-18 overflow-hidden overflow-ellipsis font-display whitespace-nowrap"
-                  >
-                    Dandelion
-                  </p>
-                </div>
-              </div>
-              <div class="flex justify-start gap-1">
-                <div class="slot size-12"></div>
-                <div class="slot size-12"></div>
-                <div class="slot size-12"></div>
-                <div class="slot size-12"></div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <section class="flex-1">
+        <BundlesView v-if="view === 'bundle'" />
       </section>
     </main>
   </div>
@@ -80,6 +21,7 @@ import type { Season } from '@/types/bundles'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import ViewToggle from '@/components/layout/ViewToggle.vue'
 import FilterPanel from '@/components/layout/FilterPanel.vue'
+import BundlesView from '@/components/bundle/BundlesView.vue'
 
 const store = useBundlesStore()
 

@@ -2,7 +2,7 @@ import type { Bundle, BundleEntry } from '@/types/bundles'
 
 export const bundle: Bundle = {
   id: 'geologists-bundle',
-  name: "Geologist's Bundle",
+  name: "Geologist's",
   room: 'boiler-room',
   reward: 'Omni Geode (5)',
   rewardImg: 'omni-geode.png',

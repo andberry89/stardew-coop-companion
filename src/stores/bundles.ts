@@ -11,7 +11,7 @@ type CatalogPayload = {
   entries: BundleEntry[]
 }
 
-type BundleRow = {
+type BundleItem = {
   entryKey: string
   entry: BundleEntry
   completed: boolean
@@ -86,7 +86,7 @@ export const useBundlesStore = defineStore('bundles', {
       bundles: Array<{
         bundle: Bundle
         progress: ReturnType<ReturnType<typeof useBundlesStore>['bundleProgress']>
-        rows: BundleRow[]
+        items: BundleItem[]
       }>
     }> {
       const rooms = Object.values(this.roomsById).sort((a, b) => a.sortOrder - b.sortOrder)
@@ -103,7 +103,7 @@ export const useBundlesStore = defineStore('bundles', {
           progress: this.roomProgress(room.id),
           bundles: bundles.map((bundle) => {
             const keys = this.entryKeysByBundleId[bundle.id] ?? []
-            const rows: BundleRow[] = keys.map((entryKey) => {
+            const items: BundleItem[] = keys.map((entryKey) => {
               const entry = this.entriesByKey[entryKey]
               const completed = !!this.progress.entryCompletedById[entryKey]
 
@@ -128,7 +128,7 @@ export const useBundlesStore = defineStore('bundles', {
             return {
               bundle,
               progress: this.bundleProgress(bundle.id),
-              rows,
+              items,
             }
           }),
         }
@@ -139,14 +139,14 @@ export const useBundlesStore = defineStore('bundles', {
     bundlesView(): Array<{
       bundle: Bundle
       progress: ReturnType<ReturnType<typeof useBundlesStore>['bundleProgress']>
-      rows: BundleRow[]
+      items: BundleItem[]
     }> {
       return Object.values(this.bundlesById)
         .slice()
         .sort((a, b) => a.name.localeCompare(b.name))
         .map((bundle) => {
           const keys = this.entryKeysByBundleId[bundle.id] ?? []
-          const rows: BundleRow[] = keys.map((entryKey) => {
+          const items: BundleItem[] = keys.map((entryKey) => {
             const entry = this.entriesByKey[entryKey]
             const completed = !!this.progress.entryCompletedById[entryKey]
 
@@ -168,7 +168,7 @@ export const useBundlesStore = defineStore('bundles', {
             }
           })
 
-          return { bundle, progress: this.bundleProgress(bundle.id), rows }
+          return { bundle, progress: this.bundleProgress(bundle.id), items }
         })
     },
 

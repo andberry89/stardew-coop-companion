@@ -2,7 +2,7 @@ import type { Bundle, BundleEntry } from '@/types/bundles'
 
 export const bundle: Bundle = {
   id: '2500-gold-bundle',
-  name: '2,500 Bundle',
+  name: '2,500',
   room: 'vault',
   reward: 'Chocolate Cake (3)',
   rewardImg: 'chocolate-cake.png',

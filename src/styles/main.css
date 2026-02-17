@@ -46,6 +46,19 @@ body {
   border-color: rgb(250 147 5 / var(--tw-border-opacity));
 }
 
+.border-bundle {
+  border-width: 4px 4px 3px 3px;
+  border-color: #000;
+}
+
+.border-item {
+  border-image: url('/images/menu-border.png');
+  border-width: 5px 5px 4px 4px;
+  border-image-slice: 5 5 4 4 fill;
+  border-color: rgb(145 28 9);
+  background-color: rgb(244, 183, 68);
+}
+
 .slot {
   background: url('/images/icons/bundle-slot.png') center / contain no-repeat;
 }
