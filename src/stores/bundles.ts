@@ -96,7 +96,12 @@ export const useBundlesStore = defineStore('bundles', {
         const bundles = bundleIds
           .map((id) => this.bundlesById[id])
           .filter((b): b is Bundle => !!b)
-          .sort((a, b) => a.name.localeCompare(b.name))
+          .sort((a, b) => {
+            const ao = a.sortOrder ?? Number.POSITIVE_INFINITY
+            const bo = b.sortOrder ?? Number.POSITIVE_INFINITY
+            if (ao !== bo) return ao - bo
+            return a.name.localeCompare(b.name)
+          })
 
         return {
           room,
@@ -264,9 +269,12 @@ export const useBundlesStore = defineStore('bundles', {
       // deterministic order (useful later for encoding)
       for (const roomId in this.bundleIdsByRoomId) {
         this.bundleIdsByRoomId[roomId as RoomId].sort((a, b) => {
-          const A = this.bundlesById[a]?.name ?? a
-          const B = this.bundlesById[b]?.name ?? b
-          return A.localeCompare(B)
+          const A = this.bundlesById[a]
+          const B = this.bundlesById[b]
+          const ao = A?.sortOrder ?? Number.POSITIVE_INFINITY
+          const bo = B?.sortOrder ?? Number.POSITIVE_INFINITY
+          if (ao !== bo) return ao - bo
+          return (A?.name ?? a).localeCompare(B?.name ?? b)
         })
       }
       for (const bundleId in this.entryKeysByBundleId) {

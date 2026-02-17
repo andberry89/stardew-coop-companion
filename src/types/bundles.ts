@@ -28,6 +28,7 @@ export type Bundle = {
   id: string
   name: string
   room: RoomId
+  sortOrder: number
   reward: string
   rewardImg: string
   requiredCount: number

@@ -4,6 +4,7 @@ export const bundle: Bundle = {
   id: 'enchanters-bundle',
   name: "Enchanter's",
   room: 'bulletin-board',
+  sortOrder: 5,
   reward: 'Gold Bar (5)',
   rewardImg: 'gold-bar.png',
   bundleImg: 'enchanters-bundle.png',

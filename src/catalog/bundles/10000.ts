@@ -4,6 +4,7 @@ export const bundle: Bundle = {
   id: '10000-gold-bundle',
   name: '10,000',
   room: 'vault',
+  sortOrder: 3,
   reward: 'Lightning Rod (1)',
   rewardImg: 'lightning-rod.png',
   bundleImg: '10000-gold-bundle.png',

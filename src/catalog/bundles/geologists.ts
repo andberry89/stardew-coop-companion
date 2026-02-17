@@ -4,6 +4,7 @@ export const bundle: Bundle = {
   id: 'geologists-bundle',
   name: "Geologist's",
   room: 'boiler-room',
+  sortOrder: 2,
   reward: 'Omni Geode (5)',
   rewardImg: 'omni-geode.png',
   bundleImg: 'geologists-bundle.png',

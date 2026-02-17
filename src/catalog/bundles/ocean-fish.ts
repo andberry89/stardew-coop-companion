@@ -4,6 +4,7 @@ export const bundle: Bundle = {
   id: 'ocean-fish-bundle',
   name: 'Ocean Fish',
   room: 'fish-tank',
+  sortOrder: 3,
   reward: 'Warp Totem: Beach (5)',
   rewardImg: 'warp-totem-beach.png',
   bundleImg: 'ocean-fish-bundle.png',

@@ -4,6 +4,7 @@ export const bundle: Bundle = {
   id: 'chefs-bundle',
   name: "Chef's",
   room: 'bulletin-board',
+  sortOrder: 1,
   reward: 'Pink Cake (3)',
   rewardImg: 'pink-cake.png',
   bundleImg: 'chefs-bundle.png',

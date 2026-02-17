@@ -4,6 +4,7 @@ export const bundle: Bundle = {
   id: 'specialty-fish-bundle',
   name: 'Specialty Fish',
   room: 'fish-tank',
+  sortOrder: 6,
   reward: "Dish O' the Sea (5)",
   rewardImg: 'dish-o-the-sea.png',
   bundleImg: 'specialty-fish-bundle.png',

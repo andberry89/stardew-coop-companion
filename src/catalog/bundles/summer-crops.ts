@@ -4,6 +4,7 @@ export const bundle: Bundle = {
   id: 'summer-crops-bundle',
   name: 'Summer Crops',
   room: 'pantry',
+  sortOrder: 2,
   reward: 'Quality Sprinkler (1)',
   rewardImg: 'quality-sprinkler.png',
   bundleImg: 'summer-crops-bundle.png',

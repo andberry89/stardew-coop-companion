@@ -4,6 +4,7 @@ export const bundle: Bundle = {
   id: 'fall-foraging-bundle',
   name: 'Fall Foraging',
   room: 'crafts-room',
+  sortOrder: 3,
   reward: 'Fall Seeds (30)',
   rewardImg: 'fall-seeds.png',
   bundleImg: 'fall-foraging-bundle.png',
