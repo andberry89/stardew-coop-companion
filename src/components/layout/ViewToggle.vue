@@ -24,6 +24,6 @@
 
 <script setup lang="ts">
 defineProps({
-  modelValue: String, // this gives you `modelValue` in the template
+  modelValue: String,
 })
 </script>
