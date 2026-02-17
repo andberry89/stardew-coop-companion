@@ -1,5 +1,6 @@
 @config '../../tailwind.config.ts';
 
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap');
 @import 'tailwindcss';
 @import './tokens.css';
 @import './base.css';
@@ -25,4 +26,26 @@ body {
   background-size: cover;
   image-rendering: pixelated;
   fill: #44403c;
+}
+
+.grad-background {
+  background: #efab62;
+  background: linear-gradient(
+    0deg,
+    rgba(239, 171, 98, 1) 0%,
+    rgba(250, 202, 133, 1) 50%,
+    rgba(239, 171, 98, 1) 100%
+  );
+}
+
+.border-menu {
+  border-width: 10px 8px 8px 8px;
+  border-image: url('/images/menu-border.png');
+  border-image-slice: 5 4 4 4;
+  border-radius: 10px;
+  border-color: rgb(250 147 5 / var(--tw-border-opacity));
+}
+
+.slot {
+  background: url('/images/icons/bundle-slot.png') center / contain no-repeat;
 }

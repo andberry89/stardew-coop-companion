@@ -8,6 +8,7 @@ export default {
       fontFamily: {
         'stardew-bold': ['"Stardew Bold"', 'serif'],
         'stardew-thin': ['"Stardew Thin"', 'serif'],
+        quicksand: ['"Quicksand"', 'sans-serif'],
       },
     },
   },

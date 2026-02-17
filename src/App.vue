@@ -1,141 +1,116 @@
 <template>
-  <div style="padding: 20px; max-width: 900px; margin: 0 auto">
-    <h1 class="font-stardew-bold text-2xl">Bundles</h1>
-
-    <div style="display: flex; gap: 8px; margin-bottom: 16px">
-      <button @click="view = 'bundle'" :disabled="view === 'bundle'">By Bundle</button>
-      <button @click="view = 'season'" :disabled="view === 'season'">By Season</button>
-    </div>
-
-    <!-- =============== BY BUNDLE (ROOMS) =============== -->
-    <div v-if="view === 'bundle'">
-      <div
-        v-for="roomSection in store.bundlesByRoomView"
-        :key="roomSection.room.id"
-        style="margin-bottom: 40px"
-      >
-        <h2>
-          {{ roomSection.room.name }}
-          ({{ roomSection.progress.completedBundles }} / {{ roomSection.progress.totalBundles }})
-        </h2>
-
-        <img
-          :src="
-            roomSection.progress.isComplete ? roomSection.room.imgAfter : roomSection.room.imgBefore
-          "
-          alt=""
-          style="max-width: 300px; display: block; margin-bottom: 16px"
-        />
-
-        <div
-          v-for="bundleSection in roomSection.bundles"
-          :key="bundleSection.bundle.id"
-          style="border: 1px solid #ccc; padding: 12px; margin-bottom: 16px"
-        >
-          <h3>
-            {{ bundleSection.bundle.name }}
-            ({{ bundleSection.progress.completed }} / {{ bundleSection.progress.required }})
-          </h3>
-
-          <div style="margin-bottom: 8px">
-            Reward: {{ bundleSection.bundle.reward }}
-            <img
-              v-if="bundleSection.bundle.rewardImg"
-              :src="bundleSection.bundle.rewardImg"
-              alt=""
-              style="height: 32px; vertical-align: middle; margin-left: 8px"
-            />
-          </div>
-
-          <ul style="list-style: none; padding-left: 0">
-            <li v-for="row in bundleSection.rows" :key="row.entryKey" style="margin-bottom: 6px">
-              <label>
-                <input
-                  type="checkbox"
-                  :checked="row.completed"
-                  @change="store.toggleEntry(row.entryKey)"
-                />
-                <span v-if="row.item">{{ row.item.name }}</span>
-                <span v-else>(options)</span>
-
-                <span v-if="row.entry.requiredPerSubmission && row.entry.requiredPerSubmission > 1">
-                  ×{{ row.entry.requiredPerSubmission }}
-                </span>
-
-                <span v-if="row.entry.minQuality"> ({{ row.entry.minQuality }}+) </span>
-              </label>
-            </li>
-          </ul>
-        </div>
+  <div class="max-w-7xl mx-auto my-0 p-4 relative flex flex-col">
+    <header class="relative flex items-start justify-center mb-6">
+      <div class="flex flex-col text-center items-center">
+        <img src="/images/main-logo.png" alt="Stardew Valley Logo" class="center mb-4 size-[70%]" />
+        <h1 class="text-lg font-stardew-bold text-white">CO-OP COMPANION</h1>
       </div>
-    </div>
-
-    <!-- =============== BY SEASON =============== -->
-    <div v-else>
-      <div style="display: flex; gap: 8px; margin-bottom: 16px">
-        <button @click="selectedSeason = 'spring'" :disabled="selectedSeason === 'spring'">
-          Spring
-        </button>
-        <button @click="selectedSeason = 'summer'" :disabled="selectedSeason === 'summer'">
-          Summer
-        </button>
-        <button @click="selectedSeason = 'fall'" :disabled="selectedSeason === 'fall'">Fall</button>
-        <button @click="selectedSeason = 'winter'" :disabled="selectedSeason === 'winter'">
-          Winter
-        </button>
-      </div>
-
       <div
-        v-for="row in seasonItems"
-        :key="row.item.id"
-        style="border: 1px solid #ddd; padding: 10px; margin-bottom: 10px"
+        class="border-menu grad-background absolute top-4 right-4 px-4 py-2 rounded-lg text-sm font-quicksand"
       >
-        <div style="display: flex; justify-content: space-between; gap: 12px">
-          <div>
-            <strong>{{ row.item.name }}</strong>
-            <div style="font-size: 12px; opacity: 0.8">
-              {{ row.item.sources.join(' • ') }}
+        <p><span class="font-bold">Partner:</span> Casey</p>
+        <p><span class="font-bold">Farm:</span> Isen-Farm</p>
+        <p><span class="font-bold">State Code:</span> A43F00A</p>
+      </div>
+    </header>
+    <nav
+      class="border-menu grad-background flex items-start justify-center gap-4 py-4 px-20 rounded-lg w-fit self-center mb-6"
+    >
+      <button class="border-menu bg-amber-200 py-2 px-4 font-stardew-thin text-orange-950">
+        Bundles
+      </button>
+      <button class="border-menu bg-amber-200 py-2 px-4 font-stardew-thin text-orange-950">
+        Seasons
+      </button>
+    </nav>
+    <main class="flex items-start justify-between w-full gap-4">
+      <section
+        class="w-64 border-menu grad-background px-4 py-2 rounded-lg flex flex-col items-center gap-4 font-stardew-thin text-orange-950"
+      >
+        <h2 class="font-stardew-bold">Filter</h2>
+        <button class="border-menu bg-amber-200 p-2 flex gap-2 items-center w-[90%]">
+          <img src="/images/seasons/spring.png" alt="Spring" />Spring
+        </button>
+        <button class="border-menu bg-amber-200 p-2 flex gap-2 items-center w-[90%]">
+          <img src="/images/seasons/summer.png" alt="Summer" />Summer
+        </button>
+        <button class="border-menu bg-amber-200 p-2 flex gap-2 items-center w-[90%]">
+          <img src="/images/seasons/fall.png" alt="Fall" />Fall
+        </button>
+        <button class="border-menu bg-amber-200 p-2 flex gap-2 items-center w-[90%]">
+          <img src="/images/seasons/winter.png" alt="Winter" />Winter
+        </button>
+        <button class="border-menu bg-amber-200 p-2 flex gap-2 items-center w-[90%]">
+          <img src="/images/seasons/all-seasons.png" alt="All Seasons" />All
+        </button>
+      </section>
+      <section class="flex flex-col flex-1">
+        <div class="flex flex-col border-menu grad-background px-4 py-2 rounded-lg">
+          <h2 class="text-2xl font-stardew-bold text-orange-950 p-4">>Crafts Room</h2>
+          <div class="flex gap-4">
+            <div class="flex flex-col justify-start gap-4 bg-amber-200 p-4 border-menu w-[40%]">
+              <h3 class="text-lg font-stardew-bold text-orange-950 mb-4">Spring Foraging</h3>
+              <div class="flex justify-between">
+                <div class="flex flex-col justify-center text-center">
+                  <div class="bg-orange-300 border-menu flex justify-center p-0.5">
+                    <img
+                      src="/images/items/wild-horseradish.png"
+                      alt="Wild Horseradish"
+                      class="size-12"
+                    />
+                  </div>
+                  <p
+                    class="font-quicksand text-sm w-18 overflow-hidden overflow-ellipsis font-display whitespace-nowrap"
+                  >
+                    Wild Horseradish
+                  </p>
+                </div>
+                <div class="flex flex-col justify-center text-center">
+                  <div class="bg-orange-300 border-menu flex justify-center p-0.5">
+                    <img src="/images/items/daffodil.png" alt="Daffodil" class="size-12" />
+                  </div>
+                  <p
+                    class="font-quicksand text-sm w-18 overflow-hidden overflow-ellipsis font-display whitespace-nowrap"
+                  >
+                    Daffodil
+                  </p>
+                </div>
+                <div class="flex flex-col justify-center text-center">
+                  <div class="bg-orange-300 border-menu flex justify-center p-0.5">
+                    <img src="/images/items/leek.png" alt="Leek" class="size-12" />
+                  </div>
+                  <p
+                    class="font-quicksand text-sm w-18 overflow-hidden overflow-ellipsis font-display whitespace-nowrap"
+                  >
+                    Leek
+                  </p>
+                </div>
+                <div class="flex flex-col justify-center text-center">
+                  <div class="bg-orange-300 border-menu flex justify-center p-0.5">
+                    <img src="/images/items/dandelion.png" alt="Dandelion" class="size-12" />
+                  </div>
+                  <p
+                    class="font-quicksand text-sm w-18 overflow-hidden overflow-ellipsis font-display whitespace-nowrap"
+                  >
+                    Dandelion
+                  </p>
+                </div>
+              </div>
+              <div class="flex justify-start gap-1">
+                <div class="slot size-12"></div>
+                <div class="slot size-12"></div>
+                <div class="slot size-12"></div>
+                <div class="slot size-12"></div>
+              </div>
             </div>
           </div>
-
-          <div style="font-size: 12px">
-            Inventory:
-            <input
-              type="number"
-              min="0"
-              :value="row.inventory"
-              @input="
-                store.setInventory(row.item.id, Number(($event.target as HTMLInputElement).value))
-              "
-              style="width: 80px"
-            />
-          </div>
         </div>
-
-        <div v-if="row.usages.length" style="margin-top: 8px">
-          <div style="font-size: 12px; opacity: 0.8; margin-bottom: 4px">Used in:</div>
-          <ul style="list-style: none; padding-left: 0; margin: 0">
-            <li v-for="u in row.usages" :key="u.entryKey" style="margin-bottom: 4px">
-              <label>
-                <input
-                  type="checkbox"
-                  :checked="u.completed"
-                  @change="store.toggleEntry(u.entryKey)"
-                />
-                {{ u.bundleName }}
-                <span v-if="u.requiredPerSubmission > 1">×{{ u.requiredPerSubmission }}</span>
-                <span v-if="u.minQuality">({{ u.minQuality }}+)</span>
-                <span v-if="u.isOption" style="opacity: 0.7">(option)</span>
-              </label>
-            </li>
-          </ul>
-        </div>
-
-        <div v-else style="margin-top: 8px; font-size: 12px; opacity: 0.7">
-          Not used in any bundles.
-        </div>
-      </div>
-    </div>
+      </section>
+    </main>
+  </div>
+  <div class="opacity-0">
+    {{ view }}
+    {{ seasonItems }}
   </div>
 </template>
 <script setup lang="ts">
@@ -150,4 +125,3 @@ const selectedSeason = ref<Season>('spring')
 
 const seasonItems = computed(() => store.seasonView(selectedSeason.value))
 </script>
-<style scoped></style>
