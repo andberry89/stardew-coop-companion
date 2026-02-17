@@ -14,7 +14,11 @@
       >
     </div>
     <div class="space-y-1">
-      <BundleItems :items="props.bundleSection.items" :selected-season="props.selectedSeason" />
+      <BundleItems
+        :items="props.bundleSection.items"
+        :selected-season="props.selectedSeason"
+        @toggle="toggleEntry"
+      />
     </div>
     <div class="flex justify-center gap-1">
       <div
@@ -34,12 +38,15 @@
 </template>
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useBundlesStore } from '@/stores/bundles'
 import BundleItems from './BundleItems.vue'
 
 const props = defineProps({
   bundleSection: Object,
   selectedSeason: String,
 })
+
+const store = useBundlesStore()
 
 const showProgress = ref(false)
 
@@ -50,4 +57,8 @@ const bundleIcon = computed(() => {
 const rewardImg = computed(() => {
   return `/images/rewards/${props.bundleSection.bundle.rewardImg}`
 })
+
+function toggleEntry(entryKey) {
+  store.toggleEntry(entryKey)
+}
 </script>
