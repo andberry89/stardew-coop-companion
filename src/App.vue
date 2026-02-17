@@ -1,28 +1,7 @@
 <template>
-  <div class="max-w-7xl mx-auto my-0 p-4 relative flex flex-col">
-    <header class="relative flex items-start justify-center mb-6">
-      <div class="flex flex-col text-center items-center">
-        <img src="/images/main-logo.png" alt="Stardew Valley Logo" class="center mb-4 size-[70%]" />
-        <h1 class="text-lg font-stardew-bold text-white">CO-OP COMPANION</h1>
-      </div>
-      <div
-        class="border-menu grad-background absolute top-4 right-4 px-4 py-2 rounded-lg text-sm font-quicksand"
-      >
-        <p><span class="font-bold">Partner:</span> Casey</p>
-        <p><span class="font-bold">Farm:</span> Isen-Farm</p>
-        <p><span class="font-bold">State Code:</span> A43F00A</p>
-      </div>
-    </header>
-    <nav
-      class="border-menu grad-background flex items-start justify-center gap-4 py-4 px-20 rounded-lg w-fit self-center mb-6"
-    >
-      <button class="border-menu bg-amber-200 py-2 px-4 font-stardew-thin text-orange-950">
-        Bundles
-      </button>
-      <button class="border-menu bg-amber-200 py-2 px-4 font-stardew-thin text-orange-950">
-        Seasons
-      </button>
-    </nav>
+  <div class="max-w-7xl mx-auto p-4 relative flex flex-col gap-6">
+    <AppHeader />
+    <ViewToggle v-model="view" />
     <main class="flex items-start justify-between w-full gap-4">
       <section
         class="w-64 border-menu grad-background px-4 py-2 rounded-lg flex flex-col items-center gap-4 font-stardew-thin text-orange-950"
@@ -109,7 +88,6 @@
     </main>
   </div>
   <div class="opacity-0">
-    {{ view }}
     {{ seasonItems }}
   </div>
 </template>
@@ -117,6 +95,8 @@
 import { computed, ref } from 'vue'
 import { useBundlesStore } from '@/stores/bundles'
 import type { Season } from '@/types/bundles'
+import AppHeader from '@/components/layout/AppHeader.vue'
+import ViewToggle from '@/components/layout/ViewToggle.vue'
 
 const store = useBundlesStore()
 
