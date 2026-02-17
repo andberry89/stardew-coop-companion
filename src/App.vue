@@ -3,9 +3,16 @@
     <AppHeader />
     <ViewToggle v-model="view" />
     <main class="flex gap-2">
-      <FilterPanel :selected="selectedSeason" @seasonChange="selectedSeason = $event" />
+      <FilterPanel
+        :view="view"
+        :selectedSeason="selectedSeason"
+        :selectedType="selectedType"
+        @update:selectedSeason="selectedSeason = $event"
+        @update:selectedType="selectedType = $event"
+      />
       <section class="flex-1">
-        <BundlesView v-if="view === 'bundle'" />
+        <BundlesView v-if="view === 'bundle'" :selectedSeason="selectedSeason" />
+        <SeasonView v-else :season="selectedSeason" @seasonChange="selectedSeason = $event" />
       </section>
     </main>
   </div>
@@ -27,6 +34,7 @@ const store = useBundlesStore()
 
 const view = ref<'bundle' | 'season'>('bundle')
 const selectedSeason = ref<Season>('all')
+const selectedType = ref('all')
 
 const seasonItems = computed(() => store.seasonView(selectedSeason.value))
 </script>

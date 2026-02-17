@@ -14,13 +14,14 @@
       >
     </div>
     <div class="space-y-1">
-      <BundleItems :items="props.bundleSection.items" />
+      <BundleItems :items="props.bundleSection.items" :selected-season="props.selectedSeason" />
     </div>
     <div class="flex justify-center gap-1">
-      <div class="slot size-12"></div>
-      <div class="slot size-12"></div>
-      <div class="slot size-12"></div>
-      <div class="slot size-12"></div>
+      <div
+        v-for="i in props.bundleSection.bundle.requiredCount"
+        :key="i"
+        class="slot size-12"
+      ></div>
     </div>
     <div class="mt-2 font-sm font-quicksand flex items-end gap-1">
       <img src="/images/icons/bundle-reward.png" alt="Bundle Reward" class="size-6" /><strong
@@ -37,6 +38,7 @@ import BundleItems from './BundleItems.vue'
 
 const props = defineProps({
   bundleSection: Object,
+  selectedSeason: String,
 })
 
 const showProgress = ref(false)

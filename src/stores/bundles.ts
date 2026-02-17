@@ -220,6 +220,57 @@ export const useBundlesStore = defineStore('bundles', {
           })
       }
     },
+
+    // Season view (filtered by type)
+    seasonItemsByType: (s) => {
+      return (season: Season, type: string | null) => {
+        const items = Object.values(s.itemsById).filter(
+          (item) => item.seasons.includes(season) || item.seasons.includes('any'),
+        )
+        return items
+          .filter((item) => (type ? item.type === type : true))
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((item) => {
+            const bundleIds = s.bundleIdsByItemId[item.id] ?? []
+            const usages = bundleIds.flatMap((bundleId) => {
+              const keys = s.entryKeysByBundleId[bundleId] ?? []
+              return keys
+                .filter((entryKey) => {
+                  const entry = s.entriesByKey[entryKey]
+                  return entry.itemId === item.id || (entry.optionItemIds ?? []).includes(item.id)
+                })
+                .map((entryKey) => {
+                  const entry = s.entriesByKey[entryKey]
+                  const bundle = s.bundlesById[bundleId]
+                  return {
+                    entryKey,
+                    bundleId,
+                    bundleName: bundle?.name ?? bundleId,
+                    completed: !!s.progress.entryCompletedById[entryKey],
+                    requiredPerSubmission: entry.requiredBySubmission ?? 1,
+                    minQuality: entry.minQuality,
+                    isOption: !!entry.optionItemIds?.length && !entry?.itemId,
+                  }
+                })
+            })
+
+            return {
+              item,
+              inventory: s.progress.inventoryByItemId[item.id] ?? 0,
+              usages,
+            }
+          })
+      }
+    },
+
+    // Check if items are in selected season
+    isItemInSeason: (s) => {
+      return (itemId: string, season: string) => {
+        const item = s.itemsById[itemId]
+        if (!item) return true
+        return season === 'all' || item.seasons.includes(season) || item.seasons.includes('any')
+      }
+    },
   },
 
   actions: {
@@ -266,7 +317,7 @@ export const useBundlesStore = defineStore('bundles', {
         }
       }
 
-      // deterministic order (useful later for encoding)
+      // deterministic order
       for (const roomId in this.bundleIdsByRoomId) {
         this.bundleIdsByRoomId[roomId as RoomId].sort((a, b) => {
           const A = this.bundlesById[a]

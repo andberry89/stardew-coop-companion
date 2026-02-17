@@ -17,6 +17,7 @@
       v-for="item in props.items"
       :key="item.entryKey"
       class="flex flex-col items-center text-center"
+      :class="{ 'opacity-40 grayscale': !isAvailableInSeason(item) }"
     >
       <div class="bg-orange-300 border-item p-0 size-14 flex">
         <img :src="itemImg(item)" alt="Item" />
@@ -35,7 +36,14 @@ import type { Item } from '@/types/bundles'
 
 const props = defineProps({
   items: Array,
+  selectedSeason: String,
 })
+
+function isAvailableInSeason(item) {
+  const seasons = item.item?.seasons ?? []
+  if (props.selectedSeason === 'all') return true
+  return seasons.includes(props.selectedSeason || seasons.includes('any'))
+}
 
 function itemImg(item: Item) {
   return `/images/items/${item.entry.itemId}.png`

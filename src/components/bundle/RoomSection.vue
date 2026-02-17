@@ -1,5 +1,5 @@
 <template>
-  <section class="space-y-4 p-1 border-menu grad-background">
+  <section class="space-y-4 p-1 border-menu grad-background shadow-lg">
     <div class="px-4 py-2 rounded-lg flex justify-between items-center">
       <h2 class="text-xl font-stardew-bold text-orange-950">
         {{ props.roomSection.room.name }}
@@ -19,6 +19,7 @@
         v-for="bundleSection in props.roomSection.bundles"
         :key="bundleSection.bundle.id"
         :bundle-section="bundleSection"
+        :selected-season="props.selectedSeason"
       />
     </div>
   </section>
@@ -29,6 +30,7 @@ import BundleCard from './BundleCard.vue'
 
 const props = defineProps({
   roomSection: Object,
+  selectedSeason: String,
 })
 
 // const roomImg = computed(() =>
