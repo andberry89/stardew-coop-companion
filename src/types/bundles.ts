@@ -48,6 +48,14 @@ export type BundleEntry = {
   notes?: string
 }
 
+export type BundleItem = {
+  entryKey: string
+  entry: BundleEntry
+  completed: boolean
+  item?: Item
+  options?: Item[]
+}
+
 export type Room =
   | 'pantry'
   | 'crafts-room'

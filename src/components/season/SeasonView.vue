@@ -26,17 +26,7 @@ const store = useBundlesStore()
 const ALL_SEASONS: Season[] = ['spring', 'summer', 'fall', 'winter']
 
 // Exported to SeasonSection so it can render types in a stable order.
-const TYPE_ORDER: ItemType[] = [
-  'forage',
-  'crop',
-  'fish',
-  'artisan',
-  'animal',
-  'mining',
-  'resource',
-  'other',
-  'cooking',
-]
+const TYPE_ORDER: ItemType[] = ['forage', 'crop', 'fish', 'artisan', 'animal', 'mining', 'resource']
 
 const seasonGroups = computed<Season[]>(() => {
   if (!props.season) return [...ALL_SEASONS, 'any']

@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import type {
   Bundle,
   BundleEntry,
+  BundleItem,
   Item,
   Season,
   SeasonItemEntry,
@@ -16,14 +17,6 @@ type CatalogPayload = {
   items: Item[]
   bundles: Bundle[] // Bundle must include: room: RoomId
   entries: BundleEntry[]
-}
-
-type BundleItem = {
-  entryKey: string
-  entry: BundleEntry
-  completed: boolean
-  item?: Item
-  options?: Item[]
 }
 
 export const useBundlesStore = defineStore('bundles', {
