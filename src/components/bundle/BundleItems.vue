@@ -24,7 +24,7 @@
         <!-- Quanity Badge -->
         <div
           v-if="item.entry.requiredPerSubmission > 1"
-          class="absolute bottom-0 right-0 bg-[rgba(0,0,0,0.7)] text-white text-xs font-bold px-0.5 rounded"
+          class="absolute font-quicksand bottom-0 right-0 bg-[rgba(0,0,0,0.7)] text-white text-xs font-bold px-0.5 rounded"
         >
           x{{ item.entry.requiredPerSubmission }}
         </div>

@@ -44,6 +44,20 @@ export const useBundlesStore = defineStore('bundles', {
       return (entryKey: string) => !!s.progress.entryCompletedById[entryKey]
     },
 
+    completedItemsForBundle: (s) => {
+      return (bundleId: string) => {
+        const keys = s.entryKeysByBundleId[bundleId] ?? []
+        return keys
+          .filter((entryKey) => !!s.progress.entryCompletedById[entryKey])
+          .map((entryKey) => {
+            const entry = s.entriesByKey[entryKey]
+            const itemId = entry.itemId ? entry.itemId : (entry.optionItemIds?.[0] ?? null)
+            return itemId ? s.itemsById[itemId] : null
+          })
+          .filter((item) => item !== null)
+      }
+    },
+
     bundleProgress: (s) => {
       return (bundleId: string) => {
         const entryKeys = s.entryKeysByBundleId[bundleId] ?? []

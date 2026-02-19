@@ -24,8 +24,15 @@
       <div
         v-for="i in props.bundleSection.bundle.requiredCount"
         :key="i"
-        class="slot size-12"
-      ></div>
+        class="slot size-12 flex justify-center items-center"
+      >
+        <img
+          v-if="completedItems[i - 1]"
+          :src="`/images/items/${completedItems[i - 1].id}.png`"
+          class="object-contain size-8"
+          alt=""
+        />
+      </div>
     </div>
     <div class="mt-2 font-sm font-quicksand flex items-end gap-1">
       <img src="/images/icons/bundle-reward.png" alt="Bundle Reward" class="size-6" /><strong
@@ -53,6 +60,8 @@ const showProgress = ref(false)
 const bundleIcon = computed(() => {
   return `/images/icons/${props.bundleSection.bundle.bundleIcon}`
 })
+
+const completedItems = computed(() => store.completedItemsForBundle(props.bundleSection.bundle.id))
 
 const rewardImg = computed(() => {
   return `/images/rewards/${props.bundleSection.bundle.rewardImg}`
