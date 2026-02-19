@@ -5,9 +5,10 @@
       :key="item.entryKey"
       class="relative flex flex-col items-center text-center"
       :class="{
-        'opacity-40 grayscale': !isAvailableInSeason(item),
+        'opacity-40 grayscale pointer-events-none':
+          !isAvailableInSeason(item) || (props.bundleFull && !isCompleted(item)),
         'opacity-80': isCompleted(item),
-        'cursor-pointer': isAvailableInSeason(item),
+        'cursor-pointer': isAvailableInSeason(item) && (!props.bundleFull || isCompleted(item)),
       }"
       @click="toggleItem(item)"
     >
@@ -50,6 +51,7 @@
 import type { Item } from '@/types/bundles'
 
 const props = defineProps({
+  bundleFull: Boolean,
   items: Array,
   selectedSeason: String,
 })
@@ -85,6 +87,18 @@ function qualityIconFor(minQuality) {
 
 function toggleItem(item: Item) {
   if (!isAvailableInSeason(item)) return
+
+  // Allow toggle if completed
+  const completed = isCompleted(item)
+  if (completed) {
+    emit('toggle', item.entryKey)
+    return
+  }
+
+  // If bundle is full, block new selections
+  if (props.bundleFull) return
+
+  // Otherwise allow toggle
   emit('toggle', item.entryKey)
 }
 </script>
