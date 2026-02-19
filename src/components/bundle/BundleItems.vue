@@ -48,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Item } from '@/types/bundles'
+import type { Item } from '@/types'
 
 const props = defineProps({
   bundleFull: Boolean,

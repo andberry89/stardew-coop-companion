@@ -1,8 +1,15 @@
 // src/stores/bundles.ts
 import { defineStore } from 'pinia'
-import type { Bundle, BundleEntry, Item, Season } from '@/types/bundles'
-import type { Progress } from '@/types/progress'
-import type { Room, RoomId } from '@/types/rooms'
+import type {
+  Bundle,
+  BundleEntry,
+  Item,
+  Season,
+  SeasonItemEntry,
+  Progress,
+  Room,
+  RoomId,
+} from '@/types'
 
 type CatalogPayload = {
   rooms: Room[]
@@ -27,10 +34,16 @@ export const useBundlesStore = defineStore('bundles', {
     bundlesById: {} as Record<string, Bundle>,
     entriesByKey: {} as Record<string, BundleEntry>, // `${bundleId}:${entry.id}`
 
+    // cache
+    seasonCache: {} as Record<Season, SeasonItemEntry[]>,
+    seasonCacheVersion: 0,
+
     // indexes
     bundleIdsByRoomId: {} as Record<RoomId, string[]>,
     entryKeysByBundleId: {} as Record<string, string[]>,
     bundleIdsByItemId: {} as Record<string, string[]>,
+    itemIdsBySeason: {} as Record<Season, string[]>,
+    entryKeysByItemId: {} as Record<string, string[]>,
 
     // user progress
     progress: {
@@ -193,87 +206,49 @@ export const useBundlesStore = defineStore('bundles', {
 
     // Season view (items + per-bundle usages)
     seasonView: (s) => {
-      return (season: Season) => {
-        const items = Object.values(s.itemsById).filter(
-          (i) => i.seasons.includes(season) || i.seasons.includes('any'),
-        )
+      return (season: Season): SeasonItemEntry[] => {
+        if (s.seasonCache[season]) {
+          return s.seasonCache[season]
+        }
 
-        return items
-          .slice()
-          .sort((a, b) => a.name.localeCompare(b.name))
-          .map((item) => {
-            const bundleIds = s.bundleIdsByItemId[item.id] ?? []
+        const itemIds =
+          season === 'any'
+            ? (s.itemIdsBySeason['any'] ?? [])
+            : [...(s.itemIdsBySeason[season] ?? []), ...(s.itemIdsBySeason['any'] ?? [])]
 
-            const usages = bundleIds.flatMap((bundleId) => {
-              const keys = s.entryKeysByBundleId[bundleId] ?? []
-              return keys
-                .filter((entryKey) => {
-                  const entry = s.entriesByKey[entryKey]
-                  return entry.itemId === item.id || (entry.optionItemIds ?? []).includes(item.id)
-                })
-                .map((entryKey) => {
-                  const entry = s.entriesByKey[entryKey]
-                  const bundle = s.bundlesById[bundleId]
-                  return {
-                    entryKey,
-                    bundleId,
-                    bundleName: bundle?.name ?? bundleId,
-                    completed: !!s.progress.entryCompletedById[entryKey],
-                    requiredPerSubmission: entry.requiredPerSubmission ?? 1,
-                    minQuality: entry.minQuality,
-                    isOption: !!entry.optionItemIds?.length && !entry.itemId,
-                  }
-                })
+        const result = itemIds
+          .map((itemId) => {
+            const item = s.itemsById[itemId]
+            if (!item) return null
+
+            const entryKeys = s.entryKeysByItemId[itemId] ?? []
+
+            const usages = entryKeys.map((entryKey) => {
+              const entry = s.entriesByKey[entryKey]
+              const bundle = s.bundlesById[entry.bundleId]
+
+              return {
+                entryKey,
+                bundleId: entry.bundleId,
+                bundleName: bundle?.name ?? entry.bundleId,
+                completed: !!s.progress.entryCompletedById[entryKey],
+                requiredPerSubmission: entry.requiredPerSubmission ?? 1,
+                minQuality: entry.minQuality,
+                isOption: !!entry.optionItemIds?.length && !entry.itemId,
+              }
             })
 
             return {
               item,
-              inventory: s.progress.inventoryByItemId[item.id] ?? 0,
+              inventory: s.progress.inventoryByItemId[itemId] ?? 0,
               usages,
             }
           })
-      }
-    },
+          .filter((x): x is SeasonItemEntry => !!x)
+          .sort((a, b) => a.item.name.localeCompare(b.item.name))
 
-    // Season view (filtered by type)
-    seasonItemsByType: (s) => {
-      return (season: Season, type: string | null) => {
-        const items = Object.values(s.itemsById).filter(
-          (item) => item.seasons.includes(season) || item.seasons.includes('any'),
-        )
-        return items
-          .filter((item) => (type ? item.type === type : true))
-          .sort((a, b) => a.name.localeCompare(b.name))
-          .map((item) => {
-            const bundleIds = s.bundleIdsByItemId[item.id] ?? []
-            const usages = bundleIds.flatMap((bundleId) => {
-              const keys = s.entryKeysByBundleId[bundleId] ?? []
-              return keys
-                .filter((entryKey) => {
-                  const entry = s.entriesByKey[entryKey]
-                  return entry.itemId === item.id || (entry.optionItemIds ?? []).includes(item.id)
-                })
-                .map((entryKey) => {
-                  const entry = s.entriesByKey[entryKey]
-                  const bundle = s.bundlesById[bundleId]
-                  return {
-                    entryKey,
-                    bundleId,
-                    bundleName: bundle?.name ?? bundleId,
-                    completed: !!s.progress.entryCompletedById[entryKey],
-                    requiredPerSubmission: entry.requiredBySubmission ?? 1,
-                    minQuality: entry.minQuality,
-                    isOption: !!entry.optionItemIds?.length && !entry?.itemId,
-                  }
-                })
-            })
-
-            return {
-              item,
-              inventory: s.progress.inventoryByItemId[item.id] ?? 0,
-              usages,
-            }
-          })
+        s.seasonCache[season] = result
+        return result
       }
     },
 
@@ -307,6 +282,11 @@ export const useBundlesStore = defineStore('bundles', {
       // items
       for (const item of payload.items) {
         this.itemsById[item.id] = item
+
+        for (const season of item.seasons) {
+          this.itemIdsBySeason[season] ??= []
+          this.itemIdsBySeason[season].push(item.id)
+        }
       }
 
       // bundles
@@ -323,11 +303,15 @@ export const useBundlesStore = defineStore('bundles', {
         ;(this.entryKeysByBundleId[entry.bundleId] ??= []).push(key)
 
         const ids = entry.itemId ? [entry.itemId] : (entry.optionItemIds ?? [])
+
         for (const itemId of ids) {
           this.bundleIdsByItemId[itemId] ??= []
           if (!this.bundleIdsByItemId[itemId].includes(entry.bundleId)) {
             this.bundleIdsByItemId[itemId].push(entry.bundleId)
           }
+
+          this.entryKeysByItemId[itemId] ??= []
+          this.entryKeysByItemId[itemId].push(key)
         }
       }
 
@@ -352,16 +336,25 @@ export const useBundlesStore = defineStore('bundles', {
 
     toggleEntry(entryKey: string) {
       this.progress.entryCompletedById[entryKey] = !this.progress.entryCompletedById[entryKey]
+
+      this.seasonCache = {}
+      this.seasonCacheVersion++
     },
 
     setInventory(itemId: string, count: number) {
       const safe = Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0
       this.progress.inventoryByItemId[itemId] = safe
+
+      this.seasonCache = {}
+      this.seasonCacheVersion++
     },
 
     resetProgress() {
       this.progress.entryCompletedById = {}
       this.progress.inventoryByItemId = {}
+
+      this.seasonCache = {}
+      this.seasonCacheVersion++
     },
   },
 })

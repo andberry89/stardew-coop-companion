@@ -9,7 +9,7 @@ export type ItemType =
   | 'crop'
   | 'fish'
   | 'forage'
-  | 'mineral'
+  | 'mining'
   | 'other'
   | 'resource'
 

@@ -1,56 +1,72 @@
 <template>
-  <section
-    class="w-46 border-menu grad-background p-2 rounded-lg flex flex-col gap-4 font-stardew-thin text-orange-950 h-max"
+  <aside
+    class="w-46 p-4 border-menu grad-background rounded-lg flex flex-col gap-4 font-quicksand text-orange-950 h-max"
   >
     <h2 class="font-stardew-bold text-center">Filter</h2>
 
     <!-- Bundle View Season Filters -->
-    <div v-if="props.view === 'bundle'">
+    <div v-if="view === 'bundle'">
       <button
-        v-for="s in seasons"
+        v-for="s in bundleSeasons"
         :key="s.key"
-        @click="selectSeason(s.key)"
-        :class="[baseBtnClasses, props.selectedSeason === s.key ? activeClasses : inactiveClasses]"
+        @click="emit('update:bundleSeason', s.key)"
+        :class="[baseBtnClasses, props.bundleSeason === s.key ? activeClasses : inactiveClasses]"
       >
         <img :src="s.icon" :alt="s.name" class="w-6 h-6" />
         <span>{{ s.name }}</span>
       </button>
     </div>
 
-    <!-- Season View Type Filters -->
+    <!-- Season View Filters -->
     <div v-else>
+      <!-- Season Filter (SeasonView) -->
+      <button
+        v-for="s in seasonViewSeasons"
+        :key="s.key"
+        @click="handleSeasonViewSeason(s.key)"
+        :class="[
+          baseBtnClasses,
+          props.seasonViewSeason === s.key ? activeClasses : inactiveClasses,
+        ]"
+      >
+        <img :src="s.icon" :alt="s.name" class="w-6 h-6" />
+        <span>{{ s.name }}</span>
+      </button>
+
+      <!-- Type Filter -->
       <button
         v-for="t in types"
         :key="t.key"
-        @click="selectType(t.key)"
+        @click="emit('update:selectedType', t.key)"
         :class="[baseBtnClasses, props.selectedType === t.key ? activeClasses : inactiveClasses]"
       >
+        <img :src="t.icon" :alt="t.label" class="w-6 h-6" />
         {{ t.label }}
       </button>
     </div>
-  </section>
+  </aside>
 </template>
 
 <script setup lang="ts">
-const props = defineProps({
-  view: {
-    type: String as PropType<'bundle' | 'season'>,
-    required: true,
-  },
-  selectedSeason: {
-    type: String,
-    default: 'all',
-  },
-  selectedType: {
-    type: String,
-    default: 'all',
-  },
-})
+import type { Season } from '@/types'
 
-const emit = defineEmits(['update:selectedSeason', 'update:selectedType'])
+const props = defineProps<{
+  view: 'bundle' | 'season'
+  bundleSeason: Season
+  seasonViewSeason: Season | null
+  selectedType: string
+}>()
 
-// Season filter definitions
-const seasons = [
+const emit = defineEmits<{
+  (e: 'update:bundleSeason', value: Season): void
+  (e: 'update:seasonViewSeason', value: Season | null): void
+  (e: 'update:selectedType', value: string): void
+}>()
+
+/**
+ * Bundle View Seasons
+ */
+const bundleSeasons = [
   { key: 'all', name: 'All', icon: '/images/seasons/all-seasons.png' },
   { key: 'spring', name: 'Spring', icon: '/images/seasons/spring.png' },
   { key: 'summer', name: 'Summer', icon: '/images/seasons/summer.png' },
@@ -58,30 +74,39 @@ const seasons = [
   { key: 'winter', name: 'Winter', icon: '/images/seasons/winter.png' },
 ]
 
-// Type filter definitions for Season View
+/**
+ * Season View Seasons (null = All)
+ */
+const seasonViewSeasons = [
+  { key: null, name: 'All', icon: '/images/seasons/all-seasons.png' },
+  { key: 'spring', name: 'Spring', icon: '/images/seasons/spring.png' },
+  { key: 'summer', name: 'Summer', icon: '/images/seasons/summer.png' },
+  { key: 'fall', name: 'Fall', icon: '/images/seasons/fall.png' },
+  { key: 'winter', name: 'Winter', icon: '/images/seasons/winter.png' },
+]
+
+/**
+ * Type filters (SeasonView)
+ */
 const types = [
-  { key: 'all', label: 'All Types' },
-  { key: 'crop', label: 'Crop' },
-  { key: 'forage', label: 'Forage' },
-  { key: 'fish', label: 'Fish' },
-  { key: 'animal', label: 'Animal' },
-  { key: 'resource', label: 'Resource' },
-  { key: 'other', label: 'Other' },
+  { key: 'all', label: 'All Types', icon: `/images/seasons/types/inventory.png` },
+  { key: 'crop', label: 'Crop', icon: `/images/seasons/types/farming-skill.png` },
+  { key: 'forage', label: 'Forage', icon: `/images/seasons/types/foraging-skill.png` },
+  { key: 'fish', label: 'Fish', icon: `/images/seasons/types/midnight-carp.png` },
+  { key: 'artisan', label: 'Artisan', icon: `/images/seasons/types/mead.png` },
+  { key: 'animal', label: 'Animal', icon: `/images/seasons/types/blue-chicken.png` },
+  { key: 'mining', label: 'Mining', icon: `/images/seasons/types/mining-skill.png` },
+  { key: 'resource', label: 'Resource', icon: `/images/seasons/types/alamite.png` },
 ]
 
 const baseBtnClasses =
-  'border-menu bg-amber-200 p-2 flex items-center gap-2 mb-1 w-full transition-all duration-150 text-[12px]'
+  'border-menu bg-amber-200 p-2 flex items-center gap-2 mb-1 w-full transition-all duration-150 text-md'
 
 const activeClasses = 'opacity-100 scale-105 border-2 border-orange-500'
 
 const inactiveClasses = 'opacity-40 hover:opacity-60'
 
-// Emitters
-function selectSeason(key: string) {
-  emit('update:selectedSeason', key)
-}
-
-function selectType(key: string) {
-  emit('update:selectedType', key)
+function handleSeasonViewSeason(key: Season | null) {
+  emit('update:seasonViewSeason', key)
 }
 </script>

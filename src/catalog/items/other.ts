@@ -1,4 +1,4 @@
-import type { Item } from '@/types/bundles'
+import type { Item } from '@/types'
 
 export const items: Item[] = [
   {

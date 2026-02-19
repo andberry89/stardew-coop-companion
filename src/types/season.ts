@@ -1,0 +1,17 @@
+import type { Item } from '@/types'
+
+export type SeasonUsage = {
+  entryKey: string
+  bundleId: string
+  bundleName: string
+  completed: boolean
+  requiredPerSubmission: number
+  minQuality?: string
+  isOption?: boolean
+}
+
+export type SeasonItemEntry = {
+  item: Item
+  inventory: number
+  usages: SeasonUsage[]
+}

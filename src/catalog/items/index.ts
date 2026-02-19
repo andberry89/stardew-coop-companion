@@ -4,7 +4,7 @@ import { items as cookingItems } from './cooking'
 import { items as cropItems } from './crops'
 import { items as fishItems } from './fish'
 import { items as forageItems } from './forage'
-import { items as mineralItems } from './minerals'
+import { items as miningItems } from './mining'
 import { items as otherItems } from './other'
 import { items as resourceItems } from './resources'
 
@@ -15,7 +15,7 @@ export const items = [
   ...cropItems,
   ...fishItems,
   ...forageItems,
-  ...mineralItems,
+  ...miningItems,
   ...otherItems,
   ...resourceItems,
 ]

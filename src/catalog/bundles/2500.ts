@@ -1,4 +1,4 @@
-import type { Bundle, BundleEntry } from '@/types/bundles'
+import type { Bundle, BundleEntry } from '@/types'
 
 export const bundle: Bundle = {
   id: '2500-gold-bundle',

@@ -1,40 +1,39 @@
 <template>
   <div class="max-w-7xl mx-auto p-4 relative flex flex-col gap-6">
     <AppHeader />
+
     <ViewToggle v-model="view" />
+
     <main class="flex gap-2">
       <FilterPanel
         :view="view"
-        :selectedSeason="selectedSeason"
-        :selectedType="selectedType"
-        @update:selectedSeason="selectedSeason = $event"
+        :bundle-season="bundleSeason"
+        :season-view-season="seasonViewSeason"
+        :selected-type="selectedType"
+        @update:bundleSeason="bundleSeason = $event"
+        @update:seasonViewSeason="seasonViewSeason = $event"
         @update:selectedType="selectedType = $event"
       />
+
       <section class="flex-1">
-        <BundlesView v-if="view === 'bundle'" :selectedSeason="selectedSeason" />
-        <SeasonView v-else :season="selectedSeason" @seasonChange="selectedSeason = $event" />
+        <BundlesView v-if="view === 'bundle'" :selectedSeason="bundleSeason" />
+        <SeasonView v-else :season="seasonViewSeason" :selectedType="selectedType" />
       </section>
     </main>
   </div>
-  <div class="opacity-0">
-    {{ seasonItems }}
-  </div>
 </template>
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useBundlesStore } from '@/stores/bundles'
-import type { Season } from '@/types/bundles'
+import { ref } from 'vue'
+import type { Season } from '@/types'
 
 import AppHeader from '@/components/layout/AppHeader.vue'
 import ViewToggle from '@/components/layout/ViewToggle.vue'
 import FilterPanel from '@/components/layout/FilterPanel.vue'
 import BundlesView from '@/components/bundle/BundlesView.vue'
-
-const store = useBundlesStore()
+import SeasonView from '@/components/season/SeasonView.vue'
 
 const view = ref<'bundle' | 'season'>('bundle')
-const selectedSeason = ref<Season>('all')
+const bundleSeason = ref<Season>('all')
+const seasonViewSeason = ref<Season>('spring')
 const selectedType = ref('all')
-
-const seasonItems = computed(() => store.seasonView(selectedSeason.value))
 </script>
