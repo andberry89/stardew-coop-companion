@@ -15,3 +15,13 @@ export type SeasonItemEntry = {
   inventory: number
   usages: SeasonUsage[]
 }
+
+export type SeasonDisplayRow = {
+  item: SeasonItemEntry['item']
+  inventory: number
+  requirement: {
+    minQuality?: string
+    requiredPerSubmission: number
+  }
+  usages: SeasonUsage[]
+}
