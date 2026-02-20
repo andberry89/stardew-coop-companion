@@ -4,44 +4,16 @@
   >
     <h2 class="font-stardew-bold text-center">Filter</h2>
 
-    <!-- Bundle View -->
-    <div v-if="props.view === 'bundle'">
-      <FilterButton
-        v-for="s in SEASON_FILTERS"
-        :key="s.key"
-        :label="s.label"
-        :icon="s.icon"
-        :active="props.filters.bundleSeason === s.key"
-        @click="emit('update:bundleSeason', s.key)"
-      />
-    </div>
-
-    <!-- Season View -->
-    <div v-else>
-      <h3 class="text-[10px] font-stardew-thin uppercase tracking-wide text-orange-800 mt-2 mb-2">
-        Season
-      </h3>
+    <div v-for="group in FILTER_GROUPS[props.view]" :key="group.model">
+      <h3 v-if="group.title">{{ group.title }}</h3>
 
       <FilterButton
-        v-for="s in SEASON_FILTERS"
-        :key="s.key"
-        :label="s.label"
-        :icon="s.icon"
-        :active="props.filters.seasonViewSeason === s.key"
-        @click="emit('update:seasonViewSeason', s.key)"
-      />
-
-      <h3 class="text-[10px] font-stardew-thin uppercase tracking-wide text-orange-800 mt-4 mb-2">
-        Type
-      </h3>
-
-      <FilterButton
-        v-for="t in TYPE_FILTERS"
-        :key="t.key"
-        :label="t.label"
-        :icon="t.icon"
-        :active="props.filters.type === t.key"
-        @click="emit('update:type', t.key)"
+        v-for="option in group.options"
+        :key="option.key"
+        :label="option.label"
+        :icon="option.icon"
+        :active="props.filters[group.model] === option.key"
+        @click="emit(`update:${group.model}`, option.key)"
       />
     </div>
   </aside>
@@ -50,11 +22,11 @@
 <script setup lang="ts">
 import type { Season, ItemType } from '@/types'
 import type { FilterState } from '@/types/filters'
-import { SEASON_FILTERS, TYPE_FILTERS } from '@/constants/filters'
+import { FILTER_GROUPS } from '@/constants/filterConfig'
 import FilterButton from './FilterButton.vue'
 
 const props = defineProps<{
-  view: 'bundle' | 'season'
+  view: 'bundle' | 'season' | 'rooms'
   filters: FilterState
 }>()
 
@@ -62,5 +34,6 @@ const emit = defineEmits<{
   (e: 'update:bundleSeason', value: Season | null): void
   (e: 'update:seasonViewSeason', value: Season | null): void
   (e: 'update:type', value: ItemType | null): void
+  (e: 'update:roomStatus', value: RoomStatus | null): void
 }>()
 </script>

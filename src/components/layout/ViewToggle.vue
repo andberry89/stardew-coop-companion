@@ -19,6 +19,16 @@
     >
       Seasons
     </button>
+
+    <button
+      @click="$emit('update:modelValue', 'rooms')"
+      :class="[
+        'border-menu bg-amber-200 py-2 px-4 font-stardew-thin text-orange-950 transition-opacity duration-150',
+        modelValue === 'rooms' ? 'opacity-100' : 'opacity-60 hover:opacity-80',
+      ]"
+    >
+      Rooms
+    </button>
   </nav>
 </template>
 

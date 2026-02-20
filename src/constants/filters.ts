@@ -1,4 +1,4 @@
-import type { Season, ItemType, NullableFilterOption } from '@/types'
+import type { Season, ItemType, RoomStatus, NullableFilterOption } from '@/types'
 
 export const SEASON_FILTERS: NullableFilterOption<Season>[] = [
   { key: null, label: 'All', icon: '/images/seasons/all-seasons.png' },
@@ -17,4 +17,10 @@ export const TYPE_FILTERS: NullableFilterOption<ItemType>[] = [
   { key: 'animal', label: 'Animal', icon: '/images/seasons/types/blue-chicken.png' },
   { key: 'mining', label: 'Mining', icon: '/images/seasons/types/mining-skill.png' },
   { key: 'resource', label: 'Resource', icon: '/images/seasons/types/alamite.png' },
+]
+
+export const ROOM_FILTERS: NullableFilterOption<RoomStatus>[] = [
+  { key: null, label: 'All Rooms' },
+  { key: 'complete', label: 'Completed' },
+  { key: 'incomplete', label: 'Incomplete' },
 ]

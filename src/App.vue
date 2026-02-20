@@ -11,12 +11,15 @@
         @update:bundleSeason="filters.bundleSeason = $event"
         @update:seasonViewSeason="filters.seasonViewSeason = $event"
         @update:type="filters.type = $event"
+        @update:roomStatus="filters.roomStatus = $event"
       />
 
       <section class="flex-1">
         <BundlesView v-if="view === 'bundle'" :selectedSeason="filters.bundleSeason" />
 
-        <SeasonView v-else :filters="filters" />
+        <SeasonView v-if="view === 'season'" :filters="filters" />
+
+        <RoomsView v-else :filters="filters" />
       </section>
     </main>
   </div>
@@ -30,11 +33,13 @@ import ViewToggle from '@/components/layout/ViewToggle.vue'
 import FilterPanel from '@/components/layout/FilterPanel.vue'
 import BundlesView from '@/components/bundle/BundlesView.vue'
 import SeasonView from '@/components/season/SeasonView.vue'
+import RoomsView from '@/components/room/RoomsView.vue'
 
-const view = ref<'bundle' | 'season'>('bundle')
+const view = ref<'bundle' | 'season' | 'rooms'>('bundle')
 const filters = ref<FilterState>({
   bundleSeason: null,
   seasonViewSeason: null,
   type: null,
+  roomStatus: null,
 })
 </script>
