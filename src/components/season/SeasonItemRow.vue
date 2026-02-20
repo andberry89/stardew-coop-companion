@@ -1,10 +1,10 @@
 <template>
   <div
-    class="flex items-center justify-between py-1.5 transition"
+    class="flex items-center justify-between py-1.5 border-t border-amber-900 transition"
     :class="{ 'bg-green-100/60': isFullyComplete }"
   >
     <!-- LEFT -->
-    <div class="flex items-center gap-3 min-w-[220px]">
+    <div class="flex items-center gap-3 min-w-55">
       <div class="relative size-10 flex items-center justify-center">
         <img :src="`/images/items/${row.item.id}.png`" class="size-10" alt="" />
 
@@ -41,14 +41,13 @@
     </div>
 
     <!-- RIGHT -->
-    <div class="flex flex-col items-end text-sm leading-tight space-y-0.5 min-w-[200px]">
+    <div class="flex flex-col items-end text-sm leading-tight space-y-0.5 min-w-50">
       <div v-for="usage in row.usages" :key="usage.entryKey" class="flex items-center gap-1">
         <span>
-          {{ usage.completed ? '✓' : '○' }}
-        </span>
-
-        <span>
           {{ usage.bundleName }}
+        </span>
+        <span>
+          {{ usage.completed ? '✓' : '○' }}
         </span>
       </div>
     </div>
