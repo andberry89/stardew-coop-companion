@@ -33,7 +33,7 @@ import BundlesView from '@/components/bundle/BundlesView.vue'
 import SeasonView from '@/components/season/SeasonView.vue'
 
 const view = ref<'bundle' | 'season'>('bundle')
-const bundleSeason = ref<Season>('all')
+const bundleSeason = ref<Season>(null)
 const seasonViewSeason = ref<Season>('spring')
-const selectedType = ref('all')
+const selectedType = ref<ItemType | null>(null)
 </script>

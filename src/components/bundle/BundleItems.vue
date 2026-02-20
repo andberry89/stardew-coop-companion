@@ -42,7 +42,7 @@ import BundleItemTooltip from './BundleItemTooltip.vue'
 const { bundleFull, items, selectedSeason } = defineProps<{
   bundleFull: boolean
   items: BundleItem[]
-  selectedSeason: Season | 'all'
+  selectedSeason: Season | null
 }>()
 
 const emit = defineEmits<{

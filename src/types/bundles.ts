@@ -53,8 +53,6 @@ export type BundleEntry = {
   notes?: string
 }
 
-export type BundleEntry = SingleItemEntry | OptionItemEntry
-
 /* ---------------------------------- */
 /* View Models */
 /* ---------------------------------- */

@@ -79,7 +79,7 @@ import { useBundleSparkle } from '@/composables/useBundleSparkle'
 
 const { bundleSection, selectedSeason } = defineProps<{
   bundleSection: BundleSection
-  selectedSeason: Season | 'all'
+  selectedSeason: Season | null
 }>()
 
 const store = useBundlesStore()

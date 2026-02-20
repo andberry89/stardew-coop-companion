@@ -27,6 +27,6 @@ import type { Season, RoomSection as RoomSectionType } from '@/types'
 
 const { roomSection, selectedSeason } = defineProps<{
   roomSection: RoomSectionType
-  selectedSeason: Season | 'all'
+  selectedSeason: Season | null
 }>()
 </script>

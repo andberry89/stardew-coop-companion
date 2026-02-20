@@ -15,7 +15,7 @@ import RoomSection from './RoomSection.vue'
 import type { Season } from '@/types'
 
 const { selectedSeason } = defineProps<{
-  selectedSeason: Season
+  selectedSeason: Season | null
 }>()
 const store = useBundlesStore()
 </script>

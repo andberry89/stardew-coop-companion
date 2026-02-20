@@ -12,16 +12,13 @@
 
 <script setup lang="ts">
 import SeasonSection from './SeasonSection.vue'
-import type { Season } from '@/types'
+import type { ItemType, Season } from '@/types'
 import { useSeasonView } from '@/composables/useSeasonView'
 
-const props = defineProps<{
+const { season, selectedType } = defineProps<{
   season: Season | null
-  selectedType: string
+  selectedType: ItemType | null
 }>()
 
-const { TYPE_ORDER, seasonGroups, groupedBySeasonAndType } = useSeasonView(
-  props.season,
-  props.selectedType,
-)
+const { TYPE_ORDER, seasonGroups, groupedBySeasonAndType } = useSeasonView(season, selectedType)
 </script>

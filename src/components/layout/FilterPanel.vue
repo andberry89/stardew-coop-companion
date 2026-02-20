@@ -10,7 +10,7 @@
         v-for="s in bundleSeasons"
         :key="s.key"
         @click="emit('update:bundleSeason', s.key)"
-        :class="[baseBtnClasses, props.bundleSeason === s.key ? activeClasses : inactiveClasses]"
+        :class="[baseBtnClasses, bundleSeason === s.key ? activeClasses : inactiveClasses]"
       >
         <img :src="s.icon" :alt="s.name" class="w-6 h-6" />
         <span>{{ s.name }}</span>
@@ -27,10 +27,7 @@
         v-for="s in seasonViewSeasons"
         :key="s.key"
         @click="handleSeasonViewSeason(s.key)"
-        :class="[
-          baseBtnClasses,
-          props.seasonViewSeason === s.key ? activeClasses : inactiveClasses,
-        ]"
+        :class="[baseBtnClasses, seasonViewSeason === s.key ? activeClasses : inactiveClasses]"
       >
         <img :src="s.icon" :alt="s.name" class="w-6 h-6" />
         <span>{{ s.name }}</span>
@@ -44,7 +41,7 @@
         v-for="t in types"
         :key="t.key"
         @click="emit('update:selectedType', t.key)"
-        :class="[baseBtnClasses, props.selectedType === t.key ? activeClasses : inactiveClasses]"
+        :class="[baseBtnClasses, selectedType === t.key ? activeClasses : inactiveClasses]"
       >
         <img :src="t.icon" :alt="t.label" class="w-6 h-6" />
         {{ t.label }}
@@ -54,26 +51,26 @@
 </template>
 
 <script setup lang="ts">
-import type { Season } from '@/types'
+import type { Season, ItemType } from '@/types'
 
-const props = defineProps<{
+const { view, bundleSeason, seasonViewSeason, selectedType } = defineProps<{
   view: 'bundle' | 'season'
-  bundleSeason: Season
+  bundleSeason: Season | null
   seasonViewSeason: Season | null
-  selectedType: string
+  selectedType: ItemType | null
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:bundleSeason', value: Season): void
+  (e: 'update:bundleSeason', value: Season | null): void
   (e: 'update:seasonViewSeason', value: Season | null): void
-  (e: 'update:selectedType', value: string): void
+  (e: 'update:selectedType', value: ItemType | null): void
 }>()
 
 /**
  * Bundle View Seasons
  */
-const bundleSeasons = [
-  { key: 'all', name: 'All', icon: '/images/seasons/all-seasons.png' },
+const bundleSeasons: { key: Season | null; name: string; icon: string }[] = [
+  { key: null, name: 'All', icon: '/images/seasons/all-seasons.png' },
   { key: 'spring', name: 'Spring', icon: '/images/seasons/spring.png' },
   { key: 'summer', name: 'Summer', icon: '/images/seasons/summer.png' },
   { key: 'fall', name: 'Fall', icon: '/images/seasons/fall.png' },
@@ -83,7 +80,7 @@ const bundleSeasons = [
 /**
  * Season View Seasons (null = All)
  */
-const seasonViewSeasons = [
+const seasonViewSeasons: { key: Season | null; name: string; icon: string }[] = [
   { key: null, name: 'All', icon: '/images/seasons/all-seasons.png' },
   { key: 'spring', name: 'Spring', icon: '/images/seasons/spring.png' },
   { key: 'summer', name: 'Summer', icon: '/images/seasons/summer.png' },
@@ -94,8 +91,8 @@ const seasonViewSeasons = [
 /**
  * Type filters (SeasonView)
  */
-const types = [
-  { key: 'all', label: 'All Types', icon: `/images/seasons/types/inventory.png` },
+const types: { key: ItemType | null; name: string; icond: string }[] = [
+  { key: null, label: 'All Types', icon: `/images/seasons/types/inventory.png` },
   { key: 'crop', label: 'Crop', icon: `/images/seasons/types/farming-skill.png` },
   { key: 'forage', label: 'Forage', icon: `/images/seasons/types/foraging-skill.png` },
   { key: 'fish', label: 'Fish', icon: `/images/seasons/types/midnight-carp.png` },

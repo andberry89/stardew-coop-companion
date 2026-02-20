@@ -225,10 +225,11 @@ export const useBundlesStore = defineStore('bundles', {
 
     // Check if items are in selected season
     isItemInSeason: (s) => {
-      return (itemId: string, season: string) => {
+      return (itemId: string, season: Season | null) => {
         const item = s.itemsById[itemId]
         if (!item) return true
-        return season === 'all' || item.seasons.includes(season) || item.seasons.includes('any')
+        if (!season) return true
+        return item.seasons.includes(season) || item.seasons.includes('any')
       }
     },
   },

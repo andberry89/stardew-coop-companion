@@ -4,7 +4,7 @@ import type { Season, ItemType, SeasonDisplayRow } from '@/types'
 import { splitEntryIntoRows } from '@/utils/seasonTransform'
 import { ALL_SEASONS } from '@/constants/seasons'
 
-export function useSeasonView(season: Season | null, selectedType: string) {
+export function useSeasonView(season: Season | null, selectedType: ItemType | null) {
   const store = useBundlesStore()
 
   const TYPE_ORDER: ItemType[] = [
@@ -33,19 +33,23 @@ export function useSeasonView(season: Season | null, selectedType: string) {
         return entry.item.seasons.includes(seasonKey)
       })
 
-      const bucket: Partial<Record<ItemType, SeasonDisplayRow[]>> = {}
+      const rowsByType: Partial<Record<ItemType, SeasonDisplayRow[]>> = {}
 
       for (const entry of seasonFiltered) {
         const rows = splitEntryIntoRows(entry)
 
         for (const row of rows) {
           const type = row.item.type
-          if (selectedType !== 'all' && selectedType !== type) continue
-          ;(bucket[type] ??= []).push(row)
+
+          if (selectedType && selectedType !== type) continue
+
+          const arr = rowsByType[type] ?? []
+          arr.push(row)
+          rowsByType[type] = arr
         }
       }
 
-      result[seasonKey] = bucket
+      result[seasonKey] = rowsByType
     }
 
     return result
