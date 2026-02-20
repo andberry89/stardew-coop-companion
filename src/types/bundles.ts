@@ -63,8 +63,7 @@ export type BundleItem = {
   entryKey: string
   entry: BundleEntry
   completed: boolean
-  item?: Item
-  options?: Item[]
+  item: Item
 }
 
 /* ---------------------------------- */

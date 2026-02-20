@@ -57,8 +57,7 @@ export const useBundlesStore = defineStore('bundles', {
           .filter((entryKey) => !!s.progress.entryCompletedById[entryKey])
           .map((entryKey) => {
             const entry = s.entriesByKey[entryKey]
-            const itemId = entry.itemId ? entry.itemId : (entry.optionItemIds?.[0] ?? null)
-            return itemId ? s.itemsById[itemId] : null
+            return s.itemsById[entry.itemId] ?? null
           })
           .filter((item) => item !== null)
       }
@@ -132,21 +131,11 @@ export const useBundlesStore = defineStore('bundles', {
               const entry = this.entriesByKey[entryKey]
               const completed = !!this.progress.entryCompletedById[entryKey]
 
-              if (entry.itemId) {
-                return {
-                  entryKey,
-                  entry,
-                  completed,
-                  item: this.itemsById[entry.itemId],
-                }
-              }
-
-              const optionIds = entry.optionItemIds ?? []
               return {
                 entryKey,
                 entry,
                 completed,
-                options: optionIds.map((id) => this.itemsById[id]).filter(Boolean),
+                item: this.itemsById[entry.itemId],
               }
             })
 
@@ -175,21 +164,11 @@ export const useBundlesStore = defineStore('bundles', {
             const entry = this.entriesByKey[entryKey]
             const completed = !!this.progress.entryCompletedById[entryKey]
 
-            if (entry.itemId) {
-              return {
-                entryKey,
-                entry,
-                completed,
-                item: this.itemsById[entry.itemId],
-              }
-            }
-
-            const optionIds = entry.optionItemIds ?? []
             return {
               entryKey,
               entry,
               completed,
-              options: optionIds.map((id) => this.itemsById[id]).filter(Boolean),
+              item: this.itemsById[entry.itemId],
             }
           })
 
@@ -227,7 +206,6 @@ export const useBundlesStore = defineStore('bundles', {
                 completed: !!s.progress.entryCompletedById[entryKey],
                 requiredPerSubmission: entry.requiredPerSubmission ?? 1,
                 minQuality: entry.minQuality,
-                isOption: !!entry.optionItemIds?.length && !entry.itemId,
               }
             })
 
@@ -295,7 +273,7 @@ export const useBundlesStore = defineStore('bundles', {
         this.entriesByKey[key] = entry
         ;(this.entryKeysByBundleId[entry.bundleId] ??= []).push(key)
 
-        const ids = entry.itemId ? [entry.itemId] : (entry.optionItemIds ?? [])
+        const ids = [entry.itemId]
 
         for (const itemId of ids) {
           this.bundleIdsByItemId[itemId] ??= []

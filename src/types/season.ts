@@ -7,7 +7,6 @@ export type SeasonUsage = {
   completed: boolean
   requiredPerSubmission: number
   minQuality?: string
-  isOption?: boolean
 }
 
 export type SeasonItemEntry = {
