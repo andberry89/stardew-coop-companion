@@ -1,4 +1,4 @@
-import type { RoomId, Room } from '@/types/rooms'
+import type { RoomId, Room } from '@/types'
 
 /* ---------------------------------- */
 /* Core Enums */

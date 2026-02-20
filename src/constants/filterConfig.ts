@@ -7,5 +7,5 @@ export const FILTER_GROUPS = {
     { title: 'Season', options: SEASON_FILTERS, model: 'seasonViewSeason' as const },
     { title: 'Type', options: TYPE_FILTERS, model: 'type' as const },
   ],
-  rooms: [{ title: 'Status', options: ROOM_FILTERS, model: 'roomStatus' as const }],
+  room: [{ title: 'Status', options: ROOM_FILTERS, model: 'roomStatus' as const }],
 } as const

@@ -17,7 +17,7 @@ defineEmits<{
 }>()
 
 const base =
-  'border-menu bg-amber-200 p-1 flex items-center gap-2 mb-1 w-full transition-all duration-150 text-md'
+  'border-menu bg-amber-200 p-1 flex items-center gap-2 mb-1 w-full transition-all duration-150 text-md hover:cursor-pointer'
 
 const activeClass = 'opacity-100 scale-105 border-2 border-orange-500'
 const inactiveClass = 'opacity-40 hover:opacity-60'

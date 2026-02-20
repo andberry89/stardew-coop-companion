@@ -17,7 +17,7 @@
       <section class="flex-1">
         <BundlesView v-if="view === 'bundle'" :selectedSeason="filters.bundleSeason" />
 
-        <SeasonView v-if="view === 'season'" :filters="filters" />
+        <SeasonView v-else-if="view === 'season'" :filters="filters" />
 
         <RoomsView v-else :filters="filters" />
       </section>
@@ -26,7 +26,7 @@
 </template>
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { FilterState } from '@/types'
+import type { FilterState, ViewStatus } from '@/types'
 
 import AppHeader from '@/components/layout/AppHeader.vue'
 import ViewToggle from '@/components/layout/ViewToggle.vue'
@@ -35,7 +35,7 @@ import BundlesView from '@/components/bundle/BundlesView.vue'
 import SeasonView from '@/components/season/SeasonView.vue'
 import RoomsView from '@/components/room/RoomsView.vue'
 
-const view = ref<'bundle' | 'season' | 'rooms'>('bundle')
+const view = ref<ViewStatus>('bundle')
 const filters = ref<FilterState>({
   bundleSeason: null,
   seasonViewSeason: null,

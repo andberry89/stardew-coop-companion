@@ -20,13 +20,13 @@
 </template>
 
 <script setup lang="ts">
-import type { Season, ItemType } from '@/types'
+import type { ItemType, Season, ViewStatus } from '@/types'
 import type { FilterState } from '@/types/filters'
 import { FILTER_GROUPS } from '@/constants/filterConfig'
 import FilterButton from './FilterButton.vue'
 
 const props = defineProps<{
-  view: 'bundle' | 'season' | 'rooms'
+  view: ViewStatus
   filters: FilterState
 }>()
 
