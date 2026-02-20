@@ -1,10 +1,10 @@
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useBundlesStore } from '@/stores/bundles'
 import type { Season, ItemType, SeasonDisplayRow } from '@/types'
 import { splitEntryIntoRows } from '@/utils/seasonTransform'
 import { ALL_SEASONS } from '@/constants/seasons'
 
-export function useSeasonView(season: Season | null, selectedType: ItemType | null) {
+export function useSeasonView(season: Ref<Season | null>, selectedType: Ref<ItemType | null>) {
   const store = useBundlesStore()
 
   const TYPE_ORDER: ItemType[] = [
@@ -18,8 +18,8 @@ export function useSeasonView(season: Season | null, selectedType: ItemType | nu
   ]
 
   const seasonGroups = computed<Season[]>(() => {
-    if (!season) return [...ALL_SEASONS, 'any']
-    return [season, 'any']
+    if (!season.value) return [...ALL_SEASONS, 'any']
+    return [season.value, 'any']
   })
 
   const groupedBySeasonAndType = computed(() => {
@@ -41,7 +41,7 @@ export function useSeasonView(season: Season | null, selectedType: ItemType | nu
         for (const row of rows) {
           const type = row.item.type
 
-          if (selectedType && selectedType !== type) continue
+          if (selectedType.value && selectedType.value !== type) continue
 
           const arr = rowsByType[type] ?? []
           arr.push(row)

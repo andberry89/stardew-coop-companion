@@ -11,14 +11,17 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import SeasonSection from './SeasonSection.vue'
-import type { ItemType, Season } from '@/types'
 import { useSeasonView } from '@/composables/useSeasonView'
+import type { FilterState } from '@/types/filters'
 
-const { season, selectedType } = defineProps<{
-  season: Season | null
-  selectedType: ItemType | null
+const props = defineProps<{
+  filters: FilterState
 }>()
 
-const { TYPE_ORDER, seasonGroups, groupedBySeasonAndType } = useSeasonView(season, selectedType)
+const season = computed(() => props.filters.seasonViewSeason)
+const type = computed(() => props.filters.type)
+
+const { TYPE_ORDER, seasonGroups, groupedBySeasonAndType } = useSeasonView(season, type)
 </script>
