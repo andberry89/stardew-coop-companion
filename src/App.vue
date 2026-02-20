@@ -1,5 +1,7 @@
 <template>
   <div class="max-w-7xl mx-auto p-4 relative flex flex-col gap-6">
+    <AuthLogin />
+
     <AppHeader />
 
     <ViewToggle v-model="view" />
@@ -25,9 +27,11 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import type { FilterState, ViewStatus } from '@/types'
+import { supabase } from '@/lib/supabase'
 
+import AuthLogin from './components/AuthLogin.vue'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import ViewToggle from '@/components/layout/ViewToggle.vue'
 import FilterPanel from '@/components/layout/FilterPanel.vue'
@@ -41,5 +45,13 @@ const filters = ref<FilterState>({
   seasonViewSeason: null,
   type: null,
   roomStatus: null,
+})
+
+supabase.auth.onAuthStateChange((event, session) => {
+  console.log('Auth event: ', event)
+})
+
+onMounted(async () => {
+  await supabase.auth.getSession()
 })
 </script>
