@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex items-center justify-between py-1.5 border-t border-amber-900 transition"
+    class="flex items-center justify-between py-1 px-2 border-t border-amber-900 transition"
     :class="{ 'bg-green-100/60': isFullyComplete }"
   >
     <!-- LEFT -->
@@ -57,6 +57,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { SeasonDisplayRow } from '@/types'
+import { qualityIconFor } from '@/utils/quality'
 
 const props = defineProps<{
   row: SeasonDisplayRow
@@ -71,8 +72,4 @@ const itemProgress = computed(() => {
 const isFullyComplete = computed(
   () => itemProgress.value.total > 0 && itemProgress.value.completed === itemProgress.value.total,
 )
-
-function qualityIconFor(quality: string) {
-  return `/images/icons/${quality}-quality-icon.png`
-}
 </script>

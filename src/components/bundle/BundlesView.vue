@@ -4,7 +4,7 @@
       v-for="roomSection in store.bundlesByRoomView"
       :key="roomSection.room.id"
       :room-section="roomSection"
-      :selected-season="props.selectedSeason"
+      :selected-season="selectedSeason"
     />
   </div>
 </template>
@@ -12,10 +12,10 @@
 <script setup lang="ts">
 import { useBundlesStore } from '@/stores/bundles'
 import RoomSection from './RoomSection.vue'
+import type { Season } from '@/types'
 
-const props = defineProps({
-  selectedSeason: String,
-})
-
+const { selectedSeason } = defineProps<{
+  selectedSeason: Season
+}>()
 const store = useBundlesStore()
 </script>

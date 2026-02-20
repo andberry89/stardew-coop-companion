@@ -49,6 +49,7 @@
 import { computed, ref } from 'vue'
 import SeasonItemRow from './SeasonItemRow.vue'
 import type { ItemType, SeasonDisplayRow } from '@/types'
+import { ITEM_TYPE_LABELS } from '@/constants/itemTypeLabels'
 
 const props = defineProps<{
   type: ItemType
@@ -69,19 +70,5 @@ const typeProgress = computed(() => {
   return { total, completed }
 })
 
-const typeLabel = computed(() => {
-  const map: Record<ItemType, string> = {
-    forage: 'Foraging',
-    crop: 'Crops',
-    fish: 'Fish',
-    artisan: 'Artisan',
-    animal: 'Animal Products',
-    mining: 'Mining',
-    resource: 'Resources',
-    cooking: 'Cooking',
-    other: 'Other',
-  }
-
-  return map[props.type]
-})
+const typeLabel = computed(() => ITEM_TYPE_LABELS[props.type])
 </script>

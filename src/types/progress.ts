@@ -1,4 +1,9 @@
+import type { BundleEntry, Item } from '@/types'
+
+export type EntryKey = `${string}:${string}`
+// bundleId:entryId format
+
 export type Progress = {
-  entryCompltedById: Record<string, boolean>
-  inventoryByItemId: Record<string, number>
+  entryCompletedById: Record<EntryKey, boolean>
+  inventoryByItemId: Record<Item['id'], number>
 }

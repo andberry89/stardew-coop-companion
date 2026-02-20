@@ -1,4 +1,8 @@
-import type { RoomId } from '@/types/rooms'
+import type { RoomId, Room } from '@/types/rooms'
+
+/* ---------------------------------- */
+/* Core Enums */
+/* ---------------------------------- */
 
 export type Season = 'spring' | 'summer' | 'fall' | 'winter' | 'any'
 
@@ -14,6 +18,10 @@ export type ItemType =
   | 'resource'
 
 export type Quality = 'normal' | 'silver' | 'gold' | 'iridium'
+
+/* ---------------------------------- */
+/* Core Domain Models */
+/* ---------------------------------- */
 
 export type Item = {
   id: string
@@ -39,14 +47,17 @@ export type Bundle = {
 export type BundleEntry = {
   id: string
   bundleId: string
-
-  itemId?: string
-  optionItemIds?: string[]
-
-  requiredPerSubmission?: number // default 1
-
+  itemId: string
+  requiredPerSubmission?: number
+  minQuality?: Quality
   notes?: string
 }
+
+export type BundleEntry = SingleItemEntry | OptionItemEntry
+
+/* ---------------------------------- */
+/* View Models */
+/* ---------------------------------- */
 
 export type BundleItem = {
   entryKey: string
@@ -56,10 +67,34 @@ export type BundleItem = {
   options?: Item[]
 }
 
-export type Room =
-  | 'pantry'
-  | 'crafts-room'
-  | 'fish-tank'
-  | 'boiler-room'
-  | 'bulletin-board'
-  | 'vault'
+/* ---------------------------------- */
+/* Progress Models */
+/* ---------------------------------- */
+
+export type BundleProgress = {
+  completed: number
+  required: number
+  isComplete: boolean
+}
+
+export type RoomProgress = {
+  completedBundles: number
+  totalBundles: number
+  isComplete: boolean
+}
+
+/* ---------------------------------- */
+/* Aggregated View Sections */
+/* ---------------------------------- */
+
+export type BundleSection = {
+  bundle: Bundle
+  progress: BundleProgress
+  items: BundleItem[]
+}
+
+export type RoomSection = {
+  room: Room
+  progress: RoomProgress
+  bundles: BundleSection[]
+}
