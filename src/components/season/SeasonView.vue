@@ -1,5 +1,5 @@
 <template>
-  <section class="space-y-6 p-4">
+  <section class="space-y-6">
     <SeasonSection
       v-for="seasonKey in seasonGroups"
       :key="seasonKey"

@@ -1,6 +1,6 @@
 <template>
   <aside
-    class="w-46 p-4 border-menu grad-background rounded-lg flex flex-col gap-4 font-quicksand text-orange-950 h-max"
+    class="w-46 p-4 border-menu grad-background rounded-lg flex flex-col gap-4 font-quicksand text-orange-950 h-max sticky top-6 self-start"
   >
     <h2 class="font-stardew-bold text-center">Filter</h2>
 
@@ -20,6 +20,9 @@
     <!-- Season View Filters -->
     <div v-else>
       <!-- Season Filter (SeasonView) -->
+      <h3 class="text-[10px] font-stardew-thin uppercase tracking-wide text-orange-800 mt-2 mb-2">
+        Season
+      </h3>
       <button
         v-for="s in seasonViewSeasons"
         :key="s.key"
@@ -34,6 +37,9 @@
       </button>
 
       <!-- Type Filter -->
+      <h3 class="text-[10px] font-stardew-thin uppercase tracking-wide text-orange-800 mt-4 mb-2">
+        Type
+      </h3>
       <button
         v-for="t in types"
         :key="t.key"
@@ -100,7 +106,7 @@ const types = [
 ]
 
 const baseBtnClasses =
-  'border-menu bg-amber-200 p-2 flex items-center gap-2 mb-1 w-full transition-all duration-150 text-md'
+  'border-menu bg-amber-200 p-1 flex items-center gap-2 mb-1 w-full transition-all duration-150 text-md'
 
 const activeClasses = 'opacity-100 scale-105 border-2 border-orange-500'
 
