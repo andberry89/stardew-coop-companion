@@ -31,6 +31,11 @@ import { ref, onMounted } from 'vue'
 import type { FilterState, ViewStatus } from '@/types'
 import { supabase } from '@/lib/supabase'
 
+if (import.meta.env.DEV) {
+  // @ts-ignore
+  window.supabase = supabase
+}
+
 import AuthLogin from './components/AuthLogin.vue'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import ViewToggle from '@/components/layout/ViewToggle.vue'

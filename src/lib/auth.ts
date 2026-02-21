@@ -1,11 +1,16 @@
 import { supabase } from './supabase'
 
-export async function signInWithEmail(email: string) {
-  return supabase.auth.signInWithOtp({
+export async function signUp(email: string, password: string) {
+  return supabase.auth.signUp({
     email,
-    options: {
-      emailRedirectTo: 'http://localhost:5173',
-    },
+    password,
+  })
+}
+
+export async function signIn(email: string, password: string) {
+  return supabase.auth.signInWithPassword({
+    email,
+    password,
   })
 }
 
