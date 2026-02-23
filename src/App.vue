@@ -10,7 +10,7 @@
 
     <!-- Connected -->
     <template v-else>
-      <AppHeader />
+      <AppHeader :current-user-id="user?.id ?? null" />
 
       <ViewToggle v-model="view" />
 

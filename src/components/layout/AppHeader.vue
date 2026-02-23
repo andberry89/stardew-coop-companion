@@ -6,22 +6,34 @@
     </div>
 
     <div
-      class="border-menu grad-background absolute top-4 right-4 px-4 py-2 rounded-lg text-sm font-quicksand space-y-1"
+      class="border-menu grad-background absolute top-4 right-4 px-4 py-2 rounded-lg text-sm font-quicksand space-y-2"
     >
-      <p>
+      <!-- Partner -->
+      <div class="flex items-center gap-2">
         <span class="font-bold">Partner:</span>
-        {{ isPartnerConnected ? 'Connected' : 'Waiting...' }}
-      </p>
+
+        <span v-if="partnerName" class="flex items-center gap-1">
+          <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+          {{ partnerName }}
+        </span>
+
+        <span v-else class="text-gray-400"> Waiting... </span>
+      </div>
+
+      <!-- Farm -->
       <p>
         <span class="font-bold">Farm:</span>
         {{ farmName }}
       </p>
 
+      <!-- Code -->
       <p>
         <span class="font-bold">Code:</span>
         {{ farmCode }}
       </p>
-      <button class="text-xs bg-blue-600 text-white px-2 py-1 rounded mt-2" @click="generateExport">
+
+      <!-- Export -->
+      <button class="text-xs bg-blue-600 text-white px-2 py-1 rounded" @click="generateExport">
         Export State
       </button>
 
@@ -29,7 +41,23 @@
         {{ exportCode }}
       </p>
 
-      <div class="flex gap-2 pt-1">
+      <!-- Import -->
+      <input
+        v-model="importInput"
+        class="border px-2 py-1 mt-2 w-full text-xs"
+        placeholder="Paste state code"
+      />
+
+      <button class="text-xs bg-purple-600 text-white px-2 py-1 rounded mt-1" @click="runImport">
+        Import State
+      </button>
+
+      <p v-if="importMessage" class="text-xs mt-1">
+        {{ importMessage }}
+      </p>
+
+      <!-- Controls -->
+      <div class="flex gap-2 pt-2">
         <button class="text-xs bg-gray-700 text-white px-2 py-1 rounded" @click="disconnect">
           Leave Farm
         </button>
@@ -47,15 +75,39 @@ import { computed, ref } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useBundlesStore } from '@/stores/bundles'
 
+const props = defineProps<{
+  currentUserId: string | null
+}>()
+
 const store = useBundlesStore()
+
 const exportCode = ref<string | null>(null)
+const importInput = ref('')
+const importMessage = ref<string | null>(null)
 
 const farmName = computed(() => store.selectedFarm?.name ?? '')
 const farmCode = computed(() => store.selectedFarm?.code ?? '')
 
-const isPartnerConnected = computed(() => {
-  return store.activeSessionUserIds.length > 1
+const partnerName = computed(() => {
+  if (!props.currentUserId) return null
+  if (store.activeSessionUserIds.length < 2) return null
+
+  const partnerId = store.activeSessionUserIds.find((id) => id !== props.currentUserId)
+
+  return partnerId ? partnerId.slice(0, 8) : null
 })
+
+async function runImport() {
+  importMessage.value = null
+
+  try {
+    await store.importStateCode(importInput.value)
+    importMessage.value = 'State imported successfully.'
+    importInput.value = ''
+  } catch (err) {
+    importMessage.value = err instanceof Error ? err.message : 'Import failed.'
+  }
+}
 
 async function generateExport() {
   exportCode.value = await store.exportStateCode()

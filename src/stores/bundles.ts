@@ -376,7 +376,9 @@ export const useBundlesStore = defineStore('bundles', {
       this.startHeartbeat()
     },
 
+    // replace existing disconnectFromFarm() with this
     async disconnectFromFarm() {
+      // stop heartbeats & realtime first
       this.stopHeartbeat()
 
       if (this.unsubscribeRealtime) {
@@ -384,9 +386,30 @@ export const useBundlesStore = defineStore('bundles', {
         this.unsubscribeRealtime = null
       }
 
+      // attempt to remove this user's session row immediately so presence is accurate
+      try {
+        const { data: userData } = await supabase.auth.getUser()
+        const myId = userData?.user?.id ?? null
+
+        if (myId && this.currentFarmId) {
+          const { error } = await supabase
+            .from('farm_sessions')
+            .delete()
+            .match({ farm_id: this.currentFarmId, user_id: myId })
+
+          if (error) {
+            console.warn('Failed to delete farm_session on disconnect:', error)
+          }
+        }
+      } catch (err) {
+        console.warn('Error while removing session on disconnect:', err)
+      }
+
+      // clear local state
       this.currentFarmId = null
       this.farmSessionId = null
       this.selectedFarm = null
+      this.activeSessionUserIds = []
       this.farmStatus = 'idle'
     },
 
@@ -433,28 +456,38 @@ export const useBundlesStore = defineStore('bundles', {
     subscribeToSessions() {
       if (!this.currentFarmId) return
 
+      const farmId = this.currentFarmId
+
       const channel = supabase
-        .channel(`farm-sessions-${this.currentFarmId}`)
+        .channel(`farm-sessions-${farmId}`)
         .on(
           'postgres_changes',
           {
             event: '*',
             schema: 'public',
             table: 'farm_sessions',
-            filter: `farm_id=eq.${this.currentFarmId}`,
+            filter: `farm_id=eq.${farmId}`,
           },
           async () => {
             const { data } = await supabase
               .from('farm_sessions')
               .select('user_id')
-              .eq('farm_id', this.currentFarmId)
+              .eq('farm_id', farmId)
 
             this.activeSessionUserIds = data?.map((r) => r.user_id) ?? []
           },
         )
         .subscribe()
 
-      // extend existing unsubscribe logic
+      // Initial load
+      supabase
+        .from('farm_sessions')
+        .select('user_id')
+        .eq('farm_id', farmId)
+        .then(({ data }) => {
+          this.activeSessionUserIds = data?.map((r) => r.user_id) ?? []
+        })
+
       const prevUnsub = this.unsubscribeRealtime
 
       this.unsubscribeRealtime = () => {
