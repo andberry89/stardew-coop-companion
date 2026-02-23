@@ -21,6 +21,13 @@
         <span class="font-bold">Code:</span>
         {{ farmCode }}
       </p>
+      <button class="text-xs bg-blue-600 text-white px-2 py-1 rounded mt-2" @click="generateExport">
+        Export State
+      </button>
+
+      <p v-if="exportCode" class="text-xs break-all mt-1">
+        {{ exportCode }}
+      </p>
 
       <div class="flex gap-2 pt-1">
         <button class="text-xs bg-gray-700 text-white px-2 py-1 rounded" @click="disconnect">
@@ -36,11 +43,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useBundlesStore } from '@/stores/bundles'
 
 const store = useBundlesStore()
+const exportCode = ref<string | null>(null)
 
 const farmName = computed(() => store.selectedFarm?.name ?? '')
 const farmCode = computed(() => store.selectedFarm?.code ?? '')
@@ -48,6 +56,10 @@ const farmCode = computed(() => store.selectedFarm?.code ?? '')
 const isPartnerConnected = computed(() => {
   return store.activeSessionUserIds.length > 1
 })
+
+async function generateExport() {
+  exportCode.value = await store.exportStateCode()
+}
 
 async function disconnect() {
   await store.disconnectFromFarm()

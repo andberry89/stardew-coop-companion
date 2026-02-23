@@ -20,6 +20,7 @@ type CatalogPayload = {
   bundles: Bundle[] // Bundle must include: room: RoomId
   entries: BundleEntry[]
 }
+const STATE_SCHEMA_VERSION = 1
 
 export const useBundlesStore = defineStore('bundles', {
   state: () => ({
@@ -542,6 +543,16 @@ export const useBundlesStore = defineStore('bundles', {
         payload = JSON.parse(json)
       } else {
         throw new Error('Invalid state code')
+      }
+
+      // Validate schema version
+      if (payload.schema !== STATE_SCHEMA_VERSION) {
+        throw new Error(`Unsupported state schema version: ${payload.schema}`)
+      }
+
+      // Validate entries structure
+      if (typeof payload.entries !== 'object' || payload.entries === null) {
+        throw new Error('Invalid state payload structure')
       }
 
       await supabase.rpc('import_state_code', {
