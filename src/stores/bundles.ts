@@ -527,13 +527,22 @@ export const useBundlesStore = defineStore('bundles', {
     async importStateCode(code: string) {
       if (!this.currentFarmId) return
 
-      if (!code.startsWith('SCC1:')) {
-        throw new Error('Invalid state code')
+      let payload: {
+        schema: number
+        entries: Record<string, { c?: boolean; t?: number }>
       }
 
-      const encoded = code.replace('SCC1:', '')
-      const json = atob(encoded)
-      const payload = JSON.parse(json)
+      if (code.startsWith('SCC2:')) {
+        const encoded = code.replace('SCC2:', '')
+        const json = await this.gunzipString(encoded)
+        payload = JSON.parse(json)
+      } else if (code.startsWith('SCC1:')) {
+        const encoded = code.replace('SCC1:', '')
+        const json = atob(encoded)
+        payload = JSON.parse(json)
+      } else {
+        throw new Error('Invalid state code')
+      }
 
       await supabase.rpc('import_state_code', {
         input_farm_id: this.currentFarmId,
@@ -541,7 +550,28 @@ export const useBundlesStore = defineStore('bundles', {
       })
     },
 
-    exportStateCode(): string | null {
+    async gzipString(input: string): Promise<string> {
+      const stream = new CompressionStream('gzip')
+      const writer = stream.writable.getWriter()
+      writer.write(new TextEncoder().encode(input))
+      writer.close()
+
+      const compressed = await new Response(stream.readable).arrayBuffer()
+      return btoa(String.fromCharCode(...new Uint8Array(compressed)))
+    },
+
+    async gunzipString(base64: string): Promise<string> {
+      const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
+      const stream = new DecompressionStream('gzip')
+      const writer = stream.writable.getWriter()
+      writer.write(bytes)
+      writer.close()
+
+      const decompressed = await new Response(stream.readable).arrayBuffer()
+      return new TextDecoder().decode(decompressed)
+    },
+
+    async exportStateCode(): Promise<string | null> {
       if (!this.currentFarmId) return null
 
       const payload = {
@@ -558,9 +588,9 @@ export const useBundlesStore = defineStore('bundles', {
       }
 
       const json = JSON.stringify(payload)
-      const encoded = btoa(json)
+      const compressed = await this.gzipString(json)
 
-      return `SCC1:${encoded}`
+      return `SCC2:${compressed}`
     },
 
     // ─────────────────────────────

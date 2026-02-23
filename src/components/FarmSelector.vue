@@ -50,8 +50,8 @@ const store = useBundlesStore()
 
 const code = ref<string | null>(null)
 
-function exportCode() {
-  code.value = store.exportStateCode()
+async function exportCode() {
+  code.value = await store.exportStateCode()
 }
 
 const importInput = ref('')
