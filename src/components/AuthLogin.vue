@@ -34,6 +34,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { signIn, signUp } from '@/lib/auth'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const email = ref('')
 const password = ref('')
@@ -42,21 +45,35 @@ const loading = ref(false)
 
 async function handleSignIn() {
   if (!email.value || !password.value) return
+
   loading.value = true
   message.value = ''
 
   const { error } = await signIn(email.value, password.value)
-  message.value = error ? error.message : 'Signed in!'
+
+  if (error) {
+    message.value = error.message
+  } else {
+    router.push('/account')
+  }
+
   loading.value = false
 }
 
 async function handleSignUp() {
   if (!email.value || !password.value) return
+
   loading.value = true
   message.value = ''
 
   const { error } = await signUp(email.value, password.value)
-  message.value = error ? error.message : 'Account created!'
+
+  if (error) {
+    message.value = error.message
+  } else {
+    router.push('/account')
+  }
+
   loading.value = false
 }
 </script>

@@ -80,20 +80,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useBundlesStore } from '@/stores/bundles'
-
-const props = defineProps<{
-  currentUserId: string | null
-}>()
+import { useRouter } from 'vue-router'
 
 const store = useBundlesStore()
+const router = useRouter()
 
 const exportCode = ref<string | null>(null)
 const importInput = ref('')
 const importMessage = ref<string | null>(null)
 const partnerDisplayName = ref<string | null>(null)
+const currentUserId = ref<string | null>(null)
 
 const farmName = computed(() => store.selectedFarm?.name ?? '')
 const farmCode = computed(() => store.selectedFarm?.code ?? '')
@@ -102,10 +101,10 @@ const seatCount = computed(() => {
 })
 
 const partnerName = computed(() => {
-  if (!props.currentUserId) return null
+  if (!currentUserId.value) return null
   if (store.activeSessionUserIds.length < 2) return null
 
-  const partnerId = store.activeSessionUserIds.find((id) => id !== props.currentUserId)
+  const partnerId = store.activeSessionUserIds.find((id) => id !== currentUserId.value)
 
   return partnerId ? partnerId.slice(0, 8) : null
 })
@@ -128,6 +127,7 @@ async function generateExport() {
 
 async function disconnect() {
   await store.disconnectFromFarm()
+  router.push('/account')
 }
 
 async function logout() {
@@ -135,10 +135,15 @@ async function logout() {
   await supabase.auth.signOut()
 }
 
+onMounted(async () => {
+  const { data } = await supabase.auth.getUser()
+  currentUserId.value = data.user?.id ?? null
+})
+
 watch(
   () => store.activeSessionUserIds,
   async (ids) => {
-    if (!props.currentUserId) {
+    if (!currentUserId.value) {
       partnerDisplayName.value = null
       return
     }
@@ -148,7 +153,7 @@ watch(
       return
     }
 
-    const partnerId = ids.find((id) => id !== props.currentUserId)
+    const partnerId = ids.find((id) => id !== currentUserId.value)
 
     if (!partnerId) {
       partnerDisplayName.value = null
