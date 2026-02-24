@@ -1,6 +1,6 @@
 <template>
+  <p>User: {{ user }}</p>
   <p>FarmId: {{ store.currentFarmId }}</p>
-  <p>Status: {{ store.farmStatus }}</p>
   <div class="max-w-7xl mx-auto p-4 relative flex flex-col gap-6">
     <!-- Logged Out -->
     <AuthLogin v-if="!user" />
@@ -39,6 +39,7 @@
 import { ref, onMounted } from 'vue'
 import type { FilterState, ViewStatus } from '@/types'
 import { supabase } from '@/lib/supabase'
+import { getMyFarms } from '@/lib/farms'
 import { useBundlesStore } from '@/stores/bundles'
 
 import AuthLogin from './components/AuthLogin.vue'
@@ -68,5 +69,21 @@ supabase.auth.onAuthStateChange((_, session) => {
 onMounted(async () => {
   const { data } = await supabase.auth.getSession()
   user.value = data.session?.user ?? null
+
+  supabase.auth.onAuthStateChange((_, session) => {
+    user.value = session?.user ?? null
+  })
+
+  if (data.session?.user) {
+    const lastFarmId = localStorage.getItem('lastFarmId')
+    if (lastFarmId) {
+      // You must refetch farm metadata first
+      const farms = await getMyFarms()
+      const farm = farms.find((f) => f.id === lastFarmId)
+      if (farm) {
+        await store.connectToFarm(farm)
+      }
+    }
+  }
 })
 </script>

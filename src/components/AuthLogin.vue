@@ -25,10 +25,6 @@
       {{ loading ? 'Loading...' : 'Create Account' }}
     </button>
 
-    <button @click="createFarm" class="bg-purple-600 text-white rounded px-4 py-2">
-      Create Test Farm
-    </button>
-
     <p v-if="message" class="text-sm text-center">
       {{ message }}
     </p>
@@ -37,7 +33,6 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { supabase } from '@/lib/supabase'
 import { signIn, signUp } from '@/lib/auth'
 
 const email = ref('')
@@ -63,35 +58,5 @@ async function handleSignUp() {
   const { error } = await signUp(email.value, password.value)
   message.value = error ? error.message : 'Account created!'
   loading.value = false
-}
-
-async function createFarm() {
-  const { data: userData } = await supabase.auth.getUser()
-  if (!userData.user) return
-
-  const code = Math.random().toString(36).substring(2, 8).toUpperCase()
-
-  const { data, error } = await supabase
-    .from('farms')
-    .insert({
-      name: 'My First Farm',
-      code,
-      created_by: userData.user.id,
-    })
-    .select()
-    .single()
-
-  if (error) {
-    console.log('Farm insert error:', error)
-    return
-  }
-
-  const { error: memberError } = await supabase.from('farm_members').insert({
-    farm_id: data.id,
-    user_id: userData.user.id,
-    role: 'admin',
-  })
-
-  console.log('Farm created:', data, memberError)
 }
 </script>

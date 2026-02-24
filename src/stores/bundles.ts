@@ -362,6 +362,7 @@ export const useBundlesStore = defineStore('bundles', {
 
       this.farmSessionId = data
       this.currentFarmId = farm.id
+      localStorage.setItem('lastFarmId', farm.id)
       this.selectedFarm = {
         id: farm.id,
         name: farm.name,
@@ -406,6 +407,7 @@ export const useBundlesStore = defineStore('bundles', {
       }
 
       // clear local state
+      localStorage.removeItem('lastFarmId')
       this.currentFarmId = null
       this.farmSessionId = null
       this.selectedFarm = null

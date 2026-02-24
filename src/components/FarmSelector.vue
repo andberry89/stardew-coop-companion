@@ -1,5 +1,8 @@
 <template>
   <div class="p-4 space-y-2">
+    <button class="px-3 py-2 bg-purple-600 text-white rounded" @click="createFarm">
+      Create New Farm
+    </button>
     <div v-for="farm in farms" :key="farm.id">
       <button
         class="px-3 py-2 rounded disabled:opacity-50"
@@ -44,6 +47,7 @@ import { ref, onMounted } from 'vue'
 import { getMyFarms } from '@/lib/farms'
 import { useBundlesStore } from '@/stores/bundles'
 import type { Farm } from '@/lib/farms'
+import { supabase } from '@/lib/supabase'
 
 const farms = ref<Farm[]>([])
 const store = useBundlesStore()
@@ -67,5 +71,35 @@ onMounted(async () => {
 async function selectFarm(farm: Farm) {
   if (store.farmStatus === 'connecting') return
   await store.connectToFarm(farm)
+}
+
+async function createFarm() {
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return
+
+  const code = Math.random().toString(36).substring(2, 8).toUpperCase()
+
+  const { data, error } = await supabase
+    .from('farms')
+    .insert({
+      name: 'My First Farm',
+      code,
+      created_by: userData.user.id,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.log('Farm insert error:', error)
+    return
+  }
+
+  const { error: memberError } = await supabase.from('farm_members').insert({
+    farm_id: data.id,
+    user_id: userData.user.id,
+    role: 'admin',
+  })
+
+  console.log('Farm created:', data, memberError)
 }
 </script>

@@ -13,8 +13,8 @@
         <span class="font-bold">Partner:</span>
 
         <span v-if="partnerName" class="flex items-center gap-1">
-          <span class="w-2 h-2 bg-green-500 rounded-full"></span>
-          {{ partnerName }}
+          <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+          {{ partnerDisplayName }}
         </span>
 
         <span v-else class="text-gray-400"> Waiting... </span>
@@ -71,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useBundlesStore } from '@/stores/bundles'
 
@@ -84,6 +84,7 @@ const store = useBundlesStore()
 const exportCode = ref<string | null>(null)
 const importInput = ref('')
 const importMessage = ref<string | null>(null)
+const partnerDisplayName = ref<string | null>(null)
 
 const farmName = computed(() => store.selectedFarm?.name ?? '')
 const farmCode = computed(() => store.selectedFarm?.code ?? '')
@@ -121,4 +122,35 @@ async function logout() {
   await store.disconnectFromFarm()
   await supabase.auth.signOut()
 }
+
+watch(
+  () => store.activeSessionUserIds,
+  async (ids) => {
+    if (!props.currentUserId) {
+      partnerDisplayName.value = null
+      return
+    }
+
+    if (ids.length < 2) {
+      partnerDisplayName.value = null
+      return
+    }
+
+    const partnerId = ids.find((id) => id !== props.currentUserId)
+
+    if (!partnerId) {
+      partnerDisplayName.value = null
+      return
+    }
+
+    const { data } = await supabase
+      .from('profiles')
+      .select('display_name')
+      .eq('id', partnerId)
+      .single()
+
+    partnerDisplayName.value = data?.display_name ?? null
+  },
+  { immediate: true },
+)
 </script>
