@@ -38,7 +38,8 @@ export const useBundlesStore = defineStore('bundles', {
     farmStatus: 'idle' as 'idle' | 'connecting' | 'connected' | 'reconnecting' | 'full' | 'error',
 
     heartbeatTimer: null as ReturnType<typeof setInterval> | null,
-    unsubscribeRealtime: null as (() => void) | null,
+    unsubscribeFarmChannel: null as (() => void) | null,
+    unsubscribeSessionChannel: null as (() => void) | null,
     activeSessionUserIds: [] as string[],
 
     // ─────────────────────────────
@@ -377,14 +378,18 @@ export const useBundlesStore = defineStore('bundles', {
       this.startHeartbeat()
     },
 
-    // replace existing disconnectFromFarm() with this
     async disconnectFromFarm() {
       // stop heartbeats & realtime first
       this.stopHeartbeat()
 
-      if (this.unsubscribeRealtime) {
-        this.unsubscribeRealtime()
-        this.unsubscribeRealtime = null
+      if (this.unsubscribeFarmChannel) {
+        this.unsubscribeFarmChannel()
+        this.unsubscribeFarmChannel = null
+      }
+
+      if (this.unsubscribeSessionChannel) {
+        this.unsubscribeSessionChannel()
+        this.unsubscribeSessionChannel = null
       }
 
       // attempt to remove this user's session row immediately so presence is accurate
@@ -422,9 +427,9 @@ export const useBundlesStore = defineStore('bundles', {
       if (!this.currentFarmId) return
 
       // clean previous subscription
-      if (this.unsubscribeRealtime) {
-        this.unsubscribeRealtime()
-        this.unsubscribeRealtime = null
+      if (this.unsubscribeFarmChannel) {
+        this.unsubscribeFarmChannel()
+        this.unsubscribeFarmChannel = null
       }
 
       const channel = supabase
@@ -458,7 +463,7 @@ export const useBundlesStore = defineStore('bundles', {
           }
         })
 
-      this.unsubscribeRealtime = () => {
+      this.unsubscribeFarmChannel = () => {
         supabase.removeChannel(channel)
       }
     },
@@ -498,10 +503,7 @@ export const useBundlesStore = defineStore('bundles', {
           this.activeSessionUserIds = data?.map((r) => r.user_id) ?? []
         })
 
-      const prevUnsub = this.unsubscribeRealtime
-
-      this.unsubscribeRealtime = () => {
-        if (prevUnsub) prevUnsub()
+      this.unsubscribeSessionChannel = () => {
         supabase.removeChannel(channel)
       }
     },

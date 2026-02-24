@@ -22,6 +22,12 @@
           Reconnecting...
         </p>
       </div>
+      <p>
+        <span class="font-bold">Players:</span>
+        <span :class="seatCount === 2 ? 'text-green-400' : 'text-yellow-300'">
+          &nbsp;{{ seatCount }} / 2
+        </span>
+      </p>
 
       <!-- Farm -->
       <p>
@@ -91,6 +97,9 @@ const partnerDisplayName = ref<string | null>(null)
 
 const farmName = computed(() => store.selectedFarm?.name ?? '')
 const farmCode = computed(() => store.selectedFarm?.code ?? '')
+const seatCount = computed(() => {
+  return store.activeSessionUserIds.length
+})
 
 const partnerName = computed(() => {
   if (!props.currentUserId) return null

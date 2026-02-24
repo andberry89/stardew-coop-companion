@@ -1,6 +1,4 @@
 <template>
-  <p>User: {{ user }}</p>
-  <p>FarmId: {{ store.currentFarmId }}</p>
   <div class="max-w-7xl mx-auto p-4 relative flex flex-col gap-6">
     <!-- Logged Out -->
     <AuthLogin v-if="!user" />
