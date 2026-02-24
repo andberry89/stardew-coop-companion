@@ -76,25 +76,25 @@
           <div class="font-medium">{{ farm.name }}</div>
           <div class="text-xs text-gray-400">{{ farm.code }}</div>
         </div>
-
-        <button
-          class="px-3 py-1 bg-blue-600 text-white rounded text-sm"
-          @click="connectToFarm(farm)"
-        >
-          Connect
-        </button>
         <div class="flex gap-2 mt-2">
           <button
-            class="text-xs bg-gray-600 text-white px-2 py-1 rounded"
+            class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:cursor-pointer"
+            @click="connectToFarm(farm)"
+          >
+            Connect
+          </button>
+          <button
+            v-if="isEditing"
+            class="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:cursor-pointer"
             @click="leaveFarm(farm.id)"
           >
             Leave
           </button>
 
           <button
-            v-if="farm.created_by === currentUserId"
-            class="text-xs bg-red-600 text-white px-2 py-1 rounded"
-            @click="deleteFarm(farm.id)"
+            v-if="farm.created_by === currentUserId && isEditing"
+            class="px-3 py-1 bg-red-600 text-white rounded text-sm hover:cursor-pointer"
+            @click="farmPendingDelete = farm.id"
           >
             Delete
           </button>
@@ -135,6 +135,31 @@
       </button>
     </section>
   </div>
+  <div
+    v-if="farmPendingDelete"
+    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+  >
+    <div class="bg-white p-6 rounded shadow max-w-sm w-full space-y-4">
+      <h3 class="text-lg font-semibold">Delete Farm?</h3>
+
+      <p class="text-sm text-gray-600">
+        This will permanently delete the farm and all associated data.
+      </p>
+
+      <div class="flex justify-end gap-2">
+        <button
+          class="px-3 py-1 bg-gray-500 text-white rounded text-sm"
+          @click="farmPendingDelete = null"
+        >
+          Cancel
+        </button>
+
+        <button class="px-3 py-1 bg-red-600 text-white rounded text-sm" @click="confirmDelete">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -156,6 +181,7 @@ const newFarmName = ref('')
 const joinCode = ref('')
 const farmError = ref<string | null>(null)
 const currentUserId = ref<string | null>(null)
+const farmPendingDelete = ref<string | null>(null)
 
 const avatarOptions = [
   'abigail',
@@ -350,5 +376,11 @@ async function deleteFarm(farmId: string) {
   await supabase.from('farms').delete().eq('id', farmId)
 
   farms.value = await getMyFarms()
+}
+async function confirmDelete() {
+  if (!farmPendingDelete.value) return
+
+  await deleteFarm(farmPendingDelete.value)
+  farmPendingDelete.value = null
 }
 </script>
