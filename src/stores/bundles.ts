@@ -35,7 +35,7 @@ export const useBundlesStore = defineStore('bundles', {
     },
 
     farmSessionId: null as string | null,
-    farmStatus: 'idle' as 'idle' | 'connecting' | 'connected' | 'full' | 'error',
+    farmStatus: 'idle' as 'idle' | 'connecting' | 'connected' | 'reconnecting' | 'full' | 'error',
 
     heartbeatTimer: null as ReturnType<typeof setInterval> | null,
     unsubscribeRealtime: null as (() => void) | null,
@@ -448,7 +448,15 @@ export const useBundlesStore = defineStore('bundles', {
             this.seasonCacheVersion++
           },
         )
-        .subscribe()
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            this.farmStatus = 'connected'
+          }
+
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            this.farmStatus = 'reconnecting'
+          }
+        })
 
       this.unsubscribeRealtime = () => {
         supabase.removeChannel(channel)

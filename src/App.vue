@@ -70,6 +70,16 @@ onMounted(async () => {
   const { data } = await supabase.auth.getSession()
   user.value = data.session?.user ?? null
 
+  window.addEventListener('offline', () => {
+    store.farmStatus = 'reconnecting'
+  })
+
+  window.addEventListener('online', () => {
+    if (store.currentFarmId) {
+      store.farmStatus = 'connected'
+    }
+  })
+
   supabase.auth.onAuthStateChange((_, session) => {
     user.value = session?.user ?? null
   })

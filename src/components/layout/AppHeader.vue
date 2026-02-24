@@ -18,6 +18,9 @@
         </span>
 
         <span v-else class="text-gray-400"> Waiting... </span>
+        <p v-if="store.farmStatus === 'reconnecting'" class="text-yellow-400 text-xs animate-pulse">
+          Reconnecting...
+        </p>
       </div>
 
       <!-- Farm -->
