@@ -1,5 +1,7 @@
 // src/stores/bundles.ts
 import { defineStore } from 'pinia'
+import { supabase } from '@/lib/supabase'
+
 import type {
   Bundle,
   BundleEntry,
@@ -18,27 +20,54 @@ type CatalogPayload = {
   bundles: Bundle[] // Bundle must include: room: RoomId
   entries: BundleEntry[]
 }
+const STATE_SCHEMA_VERSION = 1
 
 export const useBundlesStore = defineStore('bundles', {
   state: () => ({
-    // catalog
+    // ─────────────────────────────
+    // Farm Connection State
+    // ─────────────────────────────
+    currentFarmId: null as string | null,
+    selectedFarm: null as null | {
+      id: string
+      name: string
+      code: string
+    },
+
+    farmSessionId: null as string | null,
+    farmStatus: 'idle' as 'idle' | 'connecting' | 'connected' | 'reconnecting' | 'full' | 'error',
+
+    heartbeatTimer: null as ReturnType<typeof setInterval> | null,
+    unsubscribeFarmChannel: null as (() => void) | null,
+    unsubscribeSessionChannel: null as (() => void) | null,
+    activeSessionUserIds: [] as string[],
+
+    // ─────────────────────────────
+    // Catalog Data (static)
+    // ─────────────────────────────
     roomsById: {} as Record<RoomId, Room>,
     itemsById: {} as Record<string, Item>,
     bundlesById: {} as Record<string, Bundle>,
-    entriesByKey: {} as Record<string, BundleEntry>, // `${bundleId}:${entry.id}`
+    entriesByKey: {} as Record<string, BundleEntry>,
 
-    // cache
-    seasonCache: {} as Record<Season, SeasonItemEntry[]>,
-    seasonCacheVersion: 0,
-
-    // indexes
+    // ─────────────────────────────
+    // Catalog Indexes (derived)
+    // ─────────────────────────────
     bundleIdsByRoomId: {} as Record<RoomId, string[]>,
     entryKeysByBundleId: {} as Record<string, string[]>,
     bundleIdsByItemId: {} as Record<string, string[]>,
     itemIdsBySeason: {} as Record<Season, string[]>,
     entryKeysByItemId: {} as Record<string, string[]>,
 
-    // user progress
+    // ─────────────────────────────
+    // View Cache
+    // ─────────────────────────────
+    seasonCache: {} as Record<Season, SeasonItemEntry[]>,
+    seasonCacheVersion: 0,
+
+    // ─────────────────────────────
+    // User Progress (synced)
+    // ─────────────────────────────
     progress: {
       entryCompletedById: {},
       inventoryByItemId: {},
@@ -235,6 +264,9 @@ export const useBundlesStore = defineStore('bundles', {
   },
 
   actions: {
+    // ─────────────────────────────
+    // Catalog Initialization
+    // ─────────────────────────────
     initializeCatalog(payload: CatalogPayload) {
       // reset
       this.roomsById = {} as Record<RoomId, Room>
@@ -306,11 +338,336 @@ export const useBundlesStore = defineStore('bundles', {
       }
     },
 
-    toggleEntry(entryKey: string) {
-      this.progress.entryCompletedById[entryKey] = !this.progress.entryCompletedById[entryKey]
+    // ─────────────────────────────
+    // Farm Connection Lifecycle
+    // ─────────────────────────────
+    async connectToFarm(farm: { id: string; name: string; code: string }) {
+      // Claim seat → load state → subscribe → start heartbeat
+      this.stopHeartbeat()
+      this.farmStatus = 'connecting'
+
+      const { data, error } = await supabase.rpc('claim_seat', {
+        input_farm_id: farm.id,
+      })
+
+      if (error) {
+        if (error.code === 'P0001' && error.message === 'Farm is full') {
+          this.farmStatus = 'full'
+          return
+        }
+
+        console.error('Seat claim failed', error)
+        this.farmStatus = 'error'
+        return
+      }
+
+      this.farmSessionId = data
+      this.currentFarmId = farm.id
+      localStorage.setItem('lastFarmId', farm.id)
+      this.selectedFarm = {
+        id: farm.id,
+        name: farm.name,
+        code: farm.code,
+      }
+
+      await this.loadFarmState(farm.id)
+      this.subscribeToFarm()
+      this.subscribeToSessions()
+
+      this.farmStatus = 'connected'
+      this.startHeartbeat()
+    },
+
+    async disconnectFromFarm() {
+      // stop heartbeats & realtime first
+      this.stopHeartbeat()
+
+      if (this.unsubscribeFarmChannel) {
+        this.unsubscribeFarmChannel()
+        this.unsubscribeFarmChannel = null
+      }
+
+      if (this.unsubscribeSessionChannel) {
+        this.unsubscribeSessionChannel()
+        this.unsubscribeSessionChannel = null
+      }
+
+      // attempt to remove this user's session row immediately so presence is accurate
+      try {
+        const { data: userData } = await supabase.auth.getUser()
+        const myId = userData?.user?.id ?? null
+
+        if (myId && this.currentFarmId) {
+          const { error } = await supabase
+            .from('farm_sessions')
+            .delete()
+            .match({ farm_id: this.currentFarmId, user_id: myId })
+
+          if (error) {
+            console.warn('Failed to delete farm_session on disconnect:', error)
+          }
+        }
+      } catch (err) {
+        console.warn('Error while removing session on disconnect:', err)
+      }
+
+      // clear local state
+      localStorage.removeItem('lastFarmId')
+      this.currentFarmId = null
+      this.farmSessionId = null
+      this.selectedFarm = null
+      this.activeSessionUserIds = []
+      this.farmStatus = 'idle'
+    },
+
+    // ─────────────────────────────
+    // Realtime Subscriptions
+    // ─────────────────────────────
+    subscribeToFarm() {
+      if (!this.currentFarmId) return
+
+      // clean previous subscription
+      if (this.unsubscribeFarmChannel) {
+        this.unsubscribeFarmChannel()
+        this.unsubscribeFarmChannel = null
+      }
+
+      const channel = supabase
+        .channel(`farm-${this.currentFarmId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'farm_state',
+            filter: `farm_id=eq.${this.currentFarmId}`,
+          },
+          (payload) => {
+            const entries = payload.new.state?.entries ?? {}
+
+            this.progress.entryCompletedById = Object.fromEntries(
+              Object.entries(entries).map(([key, value]) => [key, !!(value as { c?: boolean }).c]),
+            )
+
+            this.seasonCache = {}
+            this.seasonCacheVersion++
+          },
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            this.farmStatus = 'connected'
+          }
+
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            this.farmStatus = 'reconnecting'
+          }
+        })
+
+      this.unsubscribeFarmChannel = () => {
+        supabase.removeChannel(channel)
+      }
+    },
+
+    subscribeToSessions() {
+      if (!this.currentFarmId) return
+
+      const farmId = this.currentFarmId
+
+      const channel = supabase
+        .channel(`farm-sessions-${farmId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'farm_sessions',
+            filter: `farm_id=eq.${farmId}`,
+          },
+          async () => {
+            const { data } = await supabase
+              .from('farm_sessions')
+              .select('user_id')
+              .eq('farm_id', farmId)
+
+            this.activeSessionUserIds = data?.map((r) => r.user_id) ?? []
+          },
+        )
+        .subscribe()
+
+      // Initial load
+      supabase
+        .from('farm_sessions')
+        .select('user_id')
+        .eq('farm_id', farmId)
+        .then(({ data }) => {
+          this.activeSessionUserIds = data?.map((r) => r.user_id) ?? []
+        })
+
+      this.unsubscribeSessionChannel = () => {
+        supabase.removeChannel(channel)
+      }
+    },
+
+    // ─────────────────────────────
+    // Seat Heartbeat
+    // ─────────────────────────────
+    async heartbeatSeat() {
+      if (!this.currentFarmId) return
+
+      // Reuses claim_seat to refresh last_seen_at
+      await supabase.rpc('claim_seat', {
+        input_farm_id: this.currentFarmId,
+      })
+    },
+
+    startHeartbeat() {
+      if (this.heartbeatTimer) return
+
+      this.heartbeatTimer = setInterval(() => {
+        this.heartbeatSeat()
+      }, 10000)
+    },
+
+    stopHeartbeat() {
+      if (this.heartbeatTimer) {
+        clearInterval(this.heartbeatTimer)
+        this.heartbeatTimer = null
+      }
+    },
+
+    // ─────────────────────────────
+    // Farm State
+    // ─────────────────────────────
+    async loadFarmState(farmId: string) {
+      this.currentFarmId = farmId
+
+      const { data, error } = await supabase
+        .from('farm_state')
+        .select('state')
+        .eq('farm_id', farmId)
+        .single()
+
+      if (error || !data) {
+        console.log('Failed to load farm state', error)
+        return
+      }
+
+      const entries = data.state?.entries ?? {}
+
+      const next: Record<string, boolean> = {}
+
+      for (const entryKey in entries) {
+        const value = entries[entryKey] as { c?: boolean }
+        next[entryKey] = !!value?.c
+      }
+
+      this.progress.entryCompletedById = next
 
       this.seasonCache = {}
       this.seasonCacheVersion++
+    },
+
+    // ─────────────────────────────
+    // State Import / Export
+    // ─────────────────────────────
+    async importStateCode(code: string) {
+      if (!this.currentFarmId) return
+
+      let payload: {
+        schema: number
+        entries: Record<string, { c?: boolean; t?: number }>
+      }
+
+      if (code.startsWith('SCC2:')) {
+        const encoded = code.replace('SCC2:', '')
+        const json = await this.gunzipString(encoded)
+        payload = JSON.parse(json)
+      } else if (code.startsWith('SCC1:')) {
+        const encoded = code.replace('SCC1:', '')
+        const json = atob(encoded)
+        payload = JSON.parse(json)
+      } else {
+        throw new Error('Invalid state code')
+      }
+
+      // Validate schema version
+      if (payload.schema !== STATE_SCHEMA_VERSION) {
+        throw new Error(`Unsupported state schema version: ${payload.schema}`)
+      }
+
+      // Validate entries structure
+      if (typeof payload.entries !== 'object' || payload.entries === null) {
+        throw new Error('Invalid state payload structure')
+      }
+
+      await supabase.rpc('import_state_code', {
+        input_farm_id: this.currentFarmId,
+        input_payload: payload,
+      })
+    },
+
+    async gzipString(input: string): Promise<string> {
+      const stream = new CompressionStream('gzip')
+      const writer = stream.writable.getWriter()
+      writer.write(new TextEncoder().encode(input))
+      writer.close()
+
+      const compressed = await new Response(stream.readable).arrayBuffer()
+      return btoa(String.fromCharCode(...new Uint8Array(compressed)))
+    },
+
+    async gunzipString(base64: string): Promise<string> {
+      const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
+      const stream = new DecompressionStream('gzip')
+      const writer = stream.writable.getWriter()
+      writer.write(bytes)
+      writer.close()
+
+      const decompressed = await new Response(stream.readable).arrayBuffer()
+      return new TextDecoder().decode(decompressed)
+    },
+
+    async exportStateCode(): Promise<string | null> {
+      if (!this.currentFarmId) return null
+
+      const payload = {
+        schema: 1,
+        entries: Object.fromEntries(
+          Object.entries(this.progress.entryCompletedById).map(([key, value]) => [
+            key,
+            {
+              c: value,
+              t: Date.now(),
+            },
+          ]),
+        ),
+      }
+
+      const json = JSON.stringify(payload)
+      const compressed = await this.gzipString(json)
+
+      return `SCC2:${compressed}`
+    },
+
+    // ─────────────────────────────
+    // Progress Mutations
+    // ─────────────────────────────
+    async toggleEntry(entryKey: string) {
+      if (!this.currentFarmId) return
+
+      const newValue = !this.progress.entryCompletedById[entryKey]
+
+      // optimistic update
+      this.progress.entryCompletedById[entryKey] = newValue
+      this.seasonCache = {}
+      this.seasonCacheVersion++
+
+      await supabase.rpc('apply_delta', {
+        input_farm_id: this.currentFarmId,
+        input_entry_id: entryKey,
+        input_checked: newValue,
+        input_timestamp: Date.now(),
+      })
     },
 
     setInventory(itemId: string, count: number) {
