@@ -97,6 +97,63 @@
       </p>
     </div>
   </header>
+  <BaseModal v-if="modalType === 'export'" @close="modalType = null">
+    <h2 class="text-xl font-stardew-bold text-orange-950 mb-2">Export State</h2>
+
+    <textarea
+      v-model="exportCode"
+      readonly
+      class="w-full border-menu bg-amber-50 p-3 text-xs h-40 resize-none rounded"
+      aria-label="Exported state"
+    />
+
+    <div class="flex justify-end gap-2">
+      <button
+        class="border-menu grad-amber py-2 px-4 font-stardew-thin text-orange-950 stardew-btn"
+        @click="modalType = null"
+      >
+        Close
+      </button>
+
+      <button
+        class="border-menu grad-blue py-2 px-4 font-stardew-thin text-blue-950 stardew-btn"
+        @click="copyExport"
+      >
+        Copy
+      </button>
+    </div>
+  </BaseModal>
+
+  <BaseModal v-if="modalType === 'import'" @close="modalType = null">
+    <h2 class="text-xl font-stardew-bold text-orange-950 mb-2">Import State</h2>
+
+    <textarea
+      v-model="importInput"
+      class="w-full border-menu p-2 text-xs h-36 bg-amber-50"
+      placeholder="Paste state code here"
+      aria-label="Import state"
+    />
+
+    <p v-if="importMessage" class="text-sm text-red-600 mt-2">
+      {{ importMessage }}
+    </p>
+
+    <div class="flex justify-end gap-2 mt-3">
+      <button
+        class="border-menu grad-amber py-2 px-4 font-stardew-thin text-orange-950 stardew-btn"
+        @click="modalType = null"
+      >
+        Close
+      </button>
+
+      <button
+        class="border-menu grad-green py-2 px-4 font-stardew-thin text-green-950 stardew-btn"
+        @click="runImport"
+      >
+        Import
+      </button>
+    </div>
+  </BaseModal>
 </template>
 
 <script setup lang="ts">
@@ -104,6 +161,7 @@ import { computed, ref, watch, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useBundlesStore } from '@/stores/bundles'
 import { useRouter } from 'vue-router'
+import BaseModal from '@/components/ui/BaseModal.vue'
 
 const store = useBundlesStore()
 const router = useRouter()
@@ -112,6 +170,10 @@ const menuOpen = ref(false)
 const partnerDisplayName = ref<string | null>(null)
 const currentUserId = ref<string | null>(null)
 const currentAvatar = ref<string | null>(null)
+const modalType = ref<'export' | 'import' | null>(null)
+const exportCode = ref<string | null>(null)
+const importInput = ref('')
+const importMessage = ref<string | null>(null)
 
 const farmName = computed(() => store.selectedFarm?.name ?? '')
 const farmCode = computed(() => store.selectedFarm?.code ?? '')
@@ -133,14 +195,37 @@ function handleLeaveFarm() {
   disconnect()
 }
 
-function openExport() {
+async function openExport() {
   menuOpen.value = false
-  // Modal logic will be added next
+
+  if (!store.currentFarmId) return
+
+  const code = await store.exportStateCode()
+  exportCode.value = code ?? ''
+  modalType.value = 'export'
+}
+
+async function runImport() {
+  importMessage.value = null
+
+  try {
+    await store.importStateCode(importInput.value)
+    importMessage.value = 'State imported successfully.'
+  } catch (err) {
+    importMessage.value = err instanceof Error ? err.message : 'Import failed.'
+  }
+}
+
+async function copyExport() {
+  if (!exportCode.value) return
+  await navigator.clipboard.writeText(exportCode.value)
 }
 
 function openImport() {
   menuOpen.value = false
-  // Modal logic will be added next
+  importInput.value = ''
+  importMessage.value = null
+  modalType.value = 'import'
 }
 
 onMounted(async () => {

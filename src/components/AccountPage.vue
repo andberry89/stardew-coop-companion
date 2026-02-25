@@ -1,20 +1,23 @@
 <template>
-  <div class="max-w-6xl mx-auto p-6 space-y-4">
+  <div class="max-w-6xl mx-auto p-6 space-y-8">
     <!-- PROFILE PANEL -->
     <div class="border-4 border-yellow-800 grad-amber rounded-lg p-6 space-y-6 shadow-md">
       <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-stardew-bold text-yellow-950">Farmer Profile</h1>
+        <h1 class="text-2xl font-stardew-bold text-orange-950">Farmer Profile</h1>
 
         <div class="flex gap-2">
           <button
             v-if="!isEditing"
-            class="px-3 py-1 bg-yellow-800 text-white rounded text-sm"
+            class="border-menu grad-amber py-2 px-4 font-stardew-thin text-orange-950 stardew-btn"
             @click="isEditing = true"
           >
             Edit
           </button>
 
-          <button class="px-3 py-1 bg-red-700 text-white rounded text-sm" @click="logout">
+          <button
+            class="border-menu grad-red py-2 px-4 font-stardew-thin text-red-950 stardew-btn"
+            @click="logout"
+          >
             Logout
           </button>
         </div>
@@ -25,15 +28,15 @@
         <img
           v-if="avatar"
           :src="`/images/avatars/${avatar}-portrait.png`"
-          class="size-28 rounded border-4 border-yellow-800"
+          class="w-24 h-24 rounded border-4 border-yellow-900"
         />
 
         <div>
-          <div class="text-xl font-semibold text-yellow-900">
+          <div class="text-xl font-stardew-bold text-orange-950">
             {{ displayName || 'Unnamed Farmer' }}
           </div>
 
-          <div class="text-sm text-yellow-800">
+          <div class="text-sm text-orange-900">
             {{ email }}
           </div>
         </div>
@@ -42,38 +45,41 @@
       <!-- EDIT MODE -->
       <div v-else class="space-y-4">
         <div>
-          <label class="block text-sm font-semibold text-yellow-900 mb-1"> Display Name </label>
-          <input
-            v-model="displayName"
-            class="border-2 border-yellow-700 rounded px-3 py-2 w-full"
-          />
+          <label class="block text-sm font-stardew-bold text-orange-950 mb-1"> Display Name </label>
+          <input v-model="displayName" class="border-menu bg-amber-50 rounded px-3 py-2 w-full" />
         </div>
 
         <div>
-          <label class="block text-sm font-semibold text-yellow-900 mb-2"> Avatar </label>
+          <label class="block text-sm font-stardew-bold text-orange-950 mb-2"> Avatar </label>
 
           <div class="grid grid-cols-6 gap-3">
             <img
               v-for="name in avatarOptions"
               :key="name"
               :src="`/images/avatars/${name}-portrait.png`"
-              class="size-18 rounded cursor-pointer border-4 transition-all duration-200 ease-out hover:scale-110 hover:shadow-lg"
+              class="size-20 rounded cursor-pointer border-4 transition-all duration-150 hover:scale-110"
               :class="
                 avatar === name
-                  ? 'border-green-600 scale-110 shadow-lg'
-                  : 'border-yellow-700 hover:border-green-500'
+                  ? 'border-green-700 scale-110'
+                  : 'border-yellow-800 hover:border-green-600'
               "
               @click="avatar = name"
             />
           </div>
         </div>
 
-        <div class="flex gap-2">
-          <button class="px-4 py-2 bg-green-600 text-white rounded" @click="saveProfile">
+        <div class="flex gap-3">
+          <button
+            class="border-menu grad-green py-2 px-4 font-stardew-thin text-green-950 stardew-btn"
+            @click="saveProfile"
+          >
             Save
           </button>
 
-          <button class="px-4 py-2 bg-gray-600 text-white rounded" @click="cancelEdit">
+          <button
+            class="border-menu grad-amber py-2 px-4 font-stardew-thin text-orange-950 stardew-btn"
+            @click="cancelEdit"
+          >
             Cancel
           </button>
         </div>
@@ -82,109 +88,118 @@
 
     <!-- FARMS PANEL -->
     <div class="border-4 border-green-900 grad-green rounded-lg p-6 space-y-4 shadow-md">
-      <h2 class="text-xl font-stardew-bold text-green-900">Your Farms</h2>
+      <h2 class="text-xl font-stardew-bold text-green-950">Your Farms</h2>
 
       <div class="grid md:grid-cols-2 gap-4">
         <div
           v-for="farm in farms"
           :key="farm.id"
-          class="bg-white border-2 border-green-700 rounded-lg p-4 space-y-2"
+          class="bg-amber-50 border-menu rounded-lg p-4 space-y-3"
         >
-          <div class="font-semibold text-green-900">
+          <div class="font-stardew-bold text-green-950">
             {{ farm.name }}
           </div>
 
-          <div class="text-sm text-gray-500">Code: {{ farm.code }}</div>
-          <div class="flex justify-between pt-2">
-            <button
-              class="px-3 py-1 bg-green-700 text-white rounded text-sm"
-              @click="connectToFarm(farm)"
-            >
-              Connect
-            </button>
-            <div class="flex gap-2">
-              <button
-                class="text-xs bg-gray-600 text-white px-3 py-1 rounded"
-                @click="leaveFarm(farm.id)"
-              >
-                Leave
-              </button>
+          <div class="text-md text-gray-600">Code: {{ farm.code }}</div>
 
-              <button
-                v-if="farm.created_by === currentUserId"
-                class="text-xs bg-red-600 text-white px-3 py-1 rounded"
-                @click="farmPendingDelete = farm.id"
-              >
-                Delete
-              </button>
-            </div>
+          <button
+            class="border-menu grad-green py-2 px-4 font-stardew-thin text-green-950 stardew-btn"
+            @click="connectToFarm(farm)"
+          >
+            Connect
+          </button>
+
+          <div v-if="isEditing" class="flex gap-2 pt-2">
+            <button
+              class="border-menu grad-amber py-2 px-3 font-stardew-thin text-orange-950 stardew-btn text-xs"
+              @click="leaveFarm(farm.id)"
+            >
+              Leave
+            </button>
+
+            <button
+              v-if="farm.created_by === currentUserId"
+              class="border-menu grad-red py-2 px-3 font-stardew-thin text-red-950 stardew-btn text-xs"
+              @click="farmPendingDelete = farm.id"
+            >
+              Delete
+            </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- CREATE / JOIN PANEL -->
+    <!-- MANAGE PANEL -->
     <div class="border-4 border-blue-900 grad-blue rounded-lg p-6 space-y-6 shadow-md">
-      <h2 class="text-xl font-stardew-bold text-blue-900">Manage Farms</h2>
+      <h2 class="text-xl font-stardew-bold text-blue-950">Manage Farms</h2>
 
       <div class="grid md:grid-cols-2 gap-6">
         <!-- Create -->
-        <div class="space-y-2">
-          <h3 class="font-stardew-thin text-blue-900">Create Farm</h3>
+        <div class="space-y-3">
+          <h3 class="font-stardew-bold text-blue-950">Create Farm</h3>
 
           <input
             v-model="newFarmName"
             placeholder="Farm name"
-            class="border-2 border-blue-700 rounded px-3 py-2 w-full"
+            class="border-menu bg-blue-50 rounded px-3 py-2 w-full"
           />
 
-          <button class="px-3 py-1 bg-blue-700 text-white rounded text-sm" @click="createFarm">
+          <button
+            class="border-menu grad-blue py-2 px-4 font-stardew-thin text-blue-950 stardew-btn"
+            @click="createFarm"
+          >
             Create
           </button>
 
-          <p v-if="farmError" class="text-sm text-red-600">
+          <p v-if="farmError" class="text-sm text-red-700">
             {{ farmError }}
           </p>
         </div>
 
         <!-- Join -->
-        <div class="space-y-2">
-          <h3 class="font-stardew-thin text-blue-900">Join Farm</h3>
+        <div class="space-y-3">
+          <h3 class="font-stardew-bold text-blue-950">Join Farm</h3>
 
           <input
             v-model="joinCode"
             placeholder="Enter farm code"
-            class="border-2 border-blue-700 rounded px-3 py-2 w-full"
+            class="border-menu bg-blue-50 rounded px-3 py-2 w-full"
           />
 
-          <button class="px-3 py-1 bg-indigo-700 text-white rounded text-sm" @click="joinFarm">
+          <button
+            class="border-menu grad-blue py-2 px-4 font-stardew-thin text-blue-950 stardew-btn"
+            @click="joinFarm"
+          >
             Join
           </button>
         </div>
       </div>
     </div>
 
-    <!-- DELETE MODAL (unchanged) -->
+    <!-- DELETE MODAL -->
     <div
       v-if="farmPendingDelete"
       class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
     >
-      <div class="bg-white p-6 rounded shadow max-w-sm w-full space-y-4">
-        <h3 class="text-lg font-semibold">Delete Farm?</h3>
+      <div class="border-menu grad-amber rounded-lg p-6 w-full max-w-sm space-y-4">
+        <h3 class="font-stardew-bold text-orange-950 text-lg">Delete Farm?</h3>
 
-        <p class="text-sm text-gray-600">
+        <p class="text-sm text-orange-900">
           This will permanently delete the farm and all associated data.
         </p>
 
         <div class="flex justify-end gap-2">
           <button
-            class="px-3 py-1 bg-gray-500 text-white rounded text-sm"
+            class="border-menu grad-amber py-2 px-4 font-stardew-thin text-orange-950 stardew-btn"
             @click="farmPendingDelete = null"
           >
             Cancel
           </button>
 
-          <button class="px-3 py-1 bg-red-600 text-white rounded text-sm" @click="confirmDelete">
+          <button
+            class="border-menu grad-red py-2 px-4 font-stardew-thin text-red-950 stardew-btn"
+            @click="confirmDelete"
+          >
             Delete
           </button>
         </div>

@@ -27,6 +27,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { FilterState, ViewStatus } from '@/types'
+import { watchEffect } from 'vue'
+import { useRouter } from 'vue-router'
+import { useBundlesStore } from '@/stores/bundles'
 
 import AppHeader from '@/components/layout/AppHeader.vue'
 import ViewToggle from '@/components/layout/ViewToggle.vue'
@@ -41,5 +44,14 @@ const filters = ref<FilterState>({
   seasonViewSeason: null,
   type: null,
   roomStatus: null,
+})
+
+const router = useRouter()
+const store = useBundlesStore()
+
+watchEffect(() => {
+  if (!store.currentFarmId) {
+    router.replace('/account')
+  }
 })
 </script>
