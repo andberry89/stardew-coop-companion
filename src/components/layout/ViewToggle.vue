@@ -1,5 +1,5 @@
 <template>
-  <nav class="border-menu grad-background flex gap-4 py-4 px-6 rounded-lg w-fit self-center">
+  <nav class="border-menu grad-amber flex gap-4 py-4 px-6 rounded-lg w-fit self-center">
     <ViewButton
       v-for="option in VIEW_OPTIONS"
       :key="option.key"

@@ -25,6 +25,16 @@ const router = createRouter({
       name: 'farm',
       component: FarmPage,
       props: true,
+      async beforeEnter(to) {
+        const { data } = await supabase.auth.getUser()
+        const user = data.user ?? null
+
+        if (!user) {
+          return '/login'
+        }
+
+        return true
+      },
     },
     {
       path: '/',
