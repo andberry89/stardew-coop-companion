@@ -26,7 +26,7 @@
               class="w-full text-left hover:bg-yellow-200 px-2 py-1 rounded"
               @click="handleLeaveFarm"
             >
-              Leave Farm
+              Account Page
             </button>
 
             <button
@@ -185,9 +185,7 @@ async function disconnect() {
 }
 
 async function logout() {
-  await store.disconnectFromFarm()
   await supabase.auth.signOut()
-  router.push('/login')
 }
 
 function handleLeaveFarm() {

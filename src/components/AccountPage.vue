@@ -290,9 +290,7 @@ onMounted(async () => {
 })
 
 async function logout() {
-  await store.disconnectFromFarm()
   await supabase.auth.signOut()
-  router.push('/login')
 }
 
 async function saveProfile() {
