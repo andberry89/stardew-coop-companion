@@ -2,7 +2,7 @@
   <header class="relative flex items-center justify-center py-4">
     <!-- LEFT: MENU -->
     <div class="absolute left-4 top-4">
-      <div class="border-menu grad-amber rounded-lg overflow-hidden w-56">
+      <div ref="menuRef" class="border-menu grad-amber rounded-lg overflow-hidden w-56">
         <!-- Header Row -->
         <div
           class="flex items-center gap-2 px-4 py-2 cursor-pointer select-none"
@@ -157,7 +157,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, onMounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useBundlesStore } from '@/stores/bundles'
 import { useRouter } from 'vue-router'
@@ -167,6 +167,7 @@ const store = useBundlesStore()
 const router = useRouter()
 
 const menuOpen = ref(false)
+const menuRef = ref<HTMLElement | null>(null)
 const partnerDisplayName = ref<string | null>(null)
 const currentUserId = ref<string | null>(null)
 const currentAvatar = ref<string | null>(null)
@@ -178,6 +179,16 @@ const importMessage = ref<string | null>(null)
 const farmName = computed(() => store.selectedFarm?.name ?? '')
 const farmCode = computed(() => store.selectedFarm?.code ?? '')
 const seatCount = computed(() => store.activeSessionUserIds.length)
+
+function handleClickOutside(event: MouseEvent) {
+  if (!menuOpen.value) return
+
+  const target = event.target as Node
+
+  if (menuRef.value && !menuRef.value.contains(target)) {
+    menuOpen.value = false
+  }
+}
 
 async function disconnect() {
   await store.disconnectFromFarm()
@@ -227,6 +238,7 @@ function openImport() {
 }
 
 onMounted(async () => {
+  document.addEventListener('click', handleClickOutside)
   const { data } = await supabase.auth.getUser()
   currentUserId.value = data.user?.id ?? null
 
@@ -265,4 +277,7 @@ watch(
   },
   { immediate: true },
 )
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 </script>
