@@ -155,10 +155,6 @@
           >
             Create
           </button>
-
-          <p v-if="farmError" class="text-sm text-red-700">
-            {{ farmError }}
-          </p>
         </div>
 
         <!-- Join -->
@@ -221,9 +217,11 @@ import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { getMyFarms, getFarmByCode, type Farm } from '@/lib/farms'
 import { useBundlesStore } from '@/stores/bundles'
+import { useToast } from '@/composables/useToast'
 
 const router = useRouter()
 const store = useBundlesStore()
+const toast = useToast()
 
 const email = ref<string | null>(null)
 const displayName = ref('')
@@ -336,9 +334,13 @@ async function saveProfile() {
 
     console.log('Profile update error:', error)
 
-    if (!error) {
-      isEditing.value = false
+    if (error) {
+      toast.error('Failed to save profile')
+      return
     }
+
+    isEditing.value = false
+    toast.success('Profile updated')
   } finally {
     saveProfileLoading.value = false
   }
@@ -384,6 +386,7 @@ async function createFarm() {
 
     if (error || !farm) {
       farmError.value = 'Failed to create farm.'
+      toast.error('Failed to create farm')
       return
     }
 
@@ -395,6 +398,7 @@ async function createFarm() {
 
     farms.value = await getMyFarms()
     newFarmName.value = ''
+    toast.success('Farm created')
   } finally {
     createFarmLoading.value = false
   }
@@ -412,19 +416,29 @@ async function joinFarm() {
 
   try {
     const farm = await getFarmByCode(joinCode.value.trim().toUpperCase())
-    if (!farm) return
+
+    if (!farm) {
+      toast.error('Invalid farm code')
+      return
+    }
 
     const { data } = await supabase.auth.getUser()
     if (!data.user) return
 
-    await supabase.from('farm_members').insert({
+    const { error } = await supabase.from('farm_members').insert({
       farm_id: farm.id,
       user_id: data.user.id,
       role: 'member',
     })
 
+    if (error) {
+      toast.error('Failed to join farm')
+      return
+    }
+
     farms.value = await getMyFarms()
     joinCode.value = ''
+    toast.success('Joined farm')
   } finally {
     joinFarmLoading.value = false
   }
@@ -447,12 +461,18 @@ async function leaveFarm(farmId: string) {
 
     console.log('Leave error:', error)
 
+    if (error) {
+      toast.error('Failed to leave farm')
+      return
+    }
+
     if (store.currentFarmId === farmId) {
       await store.disconnectFromFarm()
       router.push('/account')
     }
 
     farms.value = await getMyFarms()
+    toast.success('Left farm')
   } finally {
     leavingFarmId.value = null
   }
@@ -470,16 +490,35 @@ async function deleteFarm(farmId: string) {
     await store.disconnectFromFarm()
   }
 
-  await supabase.from('farm_members').delete().match({
+  const { error: memberError } = await supabase.from('farm_members').delete().match({
     farm_id: farmId,
     user_id: currentUserId.value,
   })
 
-  await supabase.from('farm_sessions').delete().eq('farm_id', farmId)
+  if (memberError) {
+    toast.error('Failed to delete farm')
+    return
+  }
 
-  await supabase.from('farms').delete().eq('id', farmId)
+  const { error: sessionError } = await supabase
+    .from('farm_sessions')
+    .delete()
+    .eq('farm_id', farmId)
+
+  if (sessionError) {
+    toast.error('Failed to delete farm')
+    return
+  }
+
+  const { error: farmError } = await supabase.from('farms').delete().eq('id', farmId)
+
+  if (farmError) {
+    toast.error('Failed to delete farm')
+    return
+  }
 
   farms.value = await getMyFarms()
+  toast.success('Farm deleted')
 }
 
 async function confirmDelete() {

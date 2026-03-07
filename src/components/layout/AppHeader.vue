@@ -100,6 +100,7 @@
       </p>
     </div>
   </header>
+
   <BaseModal v-if="modalType === 'export'" @close="modalType = null">
     <h2 class="text-xl font-stardew-bold text-orange-950 mb-2">Export State</h2>
 
@@ -110,27 +111,21 @@
       aria-label="Exported state"
     />
 
-    <div class="space-y-2">
-      <p v-if="copyMessage" class="text-sm text-green-900 font-stardew-bold text-right">
-        {{ copyMessage }}
-      </p>
+    <div class="flex justify-end gap-2">
+      <button
+        class="border-menu grad-amber py-2 px-4 font-stardew-thin text-orange-950 stardew-btn"
+        @click="modalType = null"
+      >
+        Close
+      </button>
 
-      <div class="flex justify-end gap-2">
-        <button
-          class="border-menu grad-amber py-2 px-4 font-stardew-thin text-orange-950 stardew-btn"
-          @click="((modalType = null), (copyMessage = ''))"
-        >
-          Close
-        </button>
-
-        <button
-          :disabled="exportLoading || !exportCode"
-          class="border-menu grad-blue py-2 px-4 font-stardew-thin text-blue-950 stardew-btn disabled:opacity-50"
-          @click="copyExport"
-        >
-          Copy
-        </button>
-      </div>
+      <button
+        :disabled="exportLoading || !exportCode"
+        class="border-menu grad-blue py-2 px-4 font-stardew-thin text-blue-950 stardew-btn disabled:opacity-50"
+        @click="copyExport"
+      >
+        Copy
+      </button>
     </div>
   </BaseModal>
 
@@ -143,10 +138,6 @@
       placeholder="Paste state code here"
       aria-label="Import state"
     />
-
-    <p v-if="importMessage" class="text-sm text-red-600 mt-2">
-      {{ importMessage }}
-    </p>
 
     <div class="flex justify-end gap-2 mt-3">
       <button
@@ -173,9 +164,11 @@ import { supabase } from '@/lib/supabase'
 import { useBundlesStore } from '@/stores/bundles'
 import { useRouter } from 'vue-router'
 import BaseModal from '@/components/ui/BaseModal.vue'
+import { useToast } from '@/composables/useToast'
 
 const store = useBundlesStore()
 const router = useRouter()
+const toast = useToast()
 
 const menuOpen = ref(false)
 const menuRef = ref<HTMLElement | null>(null)
@@ -184,12 +177,10 @@ const currentUserId = ref<string | null>(null)
 const currentAvatar = ref<string | null>(null)
 const modalType = ref<'export' | 'import' | null>(null)
 const exportCode = ref<string | null>(null)
-const copyMessage = ref('')
 const exportLoading = ref(false)
 const importLoading = ref(false)
 const logoutLoading = ref(false)
 const importInput = ref('')
-const importMessage = ref<string | null>(null)
 
 const farmName = computed(() => store.selectedFarm?.name ?? '')
 const farmCode = computed(() => store.selectedFarm?.code ?? '')
@@ -231,7 +222,6 @@ async function openExport() {
   if (exportLoading.value) return
 
   menuOpen.value = false
-  copyMessage.value = ''
   exportLoading.value = true
 
   try {
@@ -248,14 +238,15 @@ async function openExport() {
 async function runImport() {
   if (importLoading.value) return
 
-  importMessage.value = null
   importLoading.value = true
 
   try {
     await store.importStateCode(importInput.value)
-    importMessage.value = 'State imported successfully.'
+    toast.success('State imported')
+    modalType.value = null
+    importInput.value = ''
   } catch (err) {
-    importMessage.value = err instanceof Error ? err.message : 'Import failed.'
+    toast.error(err instanceof Error ? err.message : 'Import failed')
   } finally {
     importLoading.value = false
   }
@@ -266,7 +257,8 @@ async function copyExport() {
 
   try {
     await navigator.clipboard.writeText(exportCode.value)
-    copyMessage.value = 'Copied!'
+    toast.success('State copied')
+    return
   } catch {
     const textarea = document.createElement('textarea')
     textarea.value = exportCode.value
@@ -279,21 +271,17 @@ async function copyExport() {
     const didCopy = document.execCommand('copy')
     document.body.removeChild(textarea)
 
-    copyMessage.value = didCopy ? 'Copied!' : 'Copy failed.'
-  }
-
-  window.setTimeout(() => {
-    if (copyMessage.value === 'Copied!' || copyMessage.value === 'Copy failed.') {
-      copyMessage.value = ''
+    if (didCopy) {
+      toast.success('State copied')
+    } else {
+      toast.error('Copy failed')
     }
-  }, 2000)
+  }
 }
 
 function openImport() {
   menuOpen.value = false
-  copyMessage.value = ''
   importInput.value = ''
-  importMessage.value = null
   modalType.value = 'import'
 }
 
