@@ -1,5 +1,14 @@
 <template>
   <div class="max-w-7xl mx-auto p-4 relative flex flex-col gap-6">
+    <LoadingOverlay
+      v-if="store.farmStatus === 'connecting' || store.farmStatus === 'reconnecting'"
+      :title="store.farmStatus === 'reconnecting' ? 'Reconnecting...' : 'Connecting...'"
+      :message="
+        store.farmStatus === 'reconnecting'
+          ? 'Restoring your farm session.'
+          : 'Preparing your farm.'
+      "
+    />
     <AppHeader />
 
     <ViewToggle v-model="view" />
@@ -37,6 +46,7 @@ import FilterPanel from '@/components/layout/FilterPanel.vue'
 import BundlesView from '@/components/bundle/BundlesView.vue'
 import SeasonView from '@/components/season/SeasonView.vue'
 import RoomsView from '@/components/room/RoomsView.vue'
+import LoadingOverlay from '@/components/ui/LoadingOverlay.vue'
 
 const view = ref<ViewStatus>('bundle')
 const filters = ref<FilterState>({
