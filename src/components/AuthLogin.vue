@@ -1,79 +1,129 @@
 <template>
-  <div class="flex flex-col gap-3 max-w-sm mx-auto mt-20">
-    <template v-if="mode === 'login'">
-      <input v-model="email" type="email" placeholder="Email" class="border rounded px-3 py-2" />
+  <div class="max-w-md mx-auto mt-20 px-4">
+    <div class="w-full max-w-md">
+      <div class="text-center mb-6">
+        <img src="/images/main-logo.png" alt="Stardew Valley Logo" class="mx-auto mb-4 w-2/3" />
+        <h1 class="text-lg font-stardew-bold text-white">CO-OP COMPANION</h1>
+      </div>
 
-      <input
-        v-model="password"
-        type="password"
-        placeholder="Password"
-        class="border rounded px-3 py-2"
-      />
+      <div class="border-menu grad-amber rounded-lg p-6 shadow-xl space-y-4">
+        <template v-if="mode === 'login'">
+          <form @submit.prevent="handleSignIn" class="space-y-3">
+            <h2 class="text-2xl font-stardew-thin text-orange-950 text-center">Welcome, Farmer</h2>
 
-      <button
-        @click="handleSignIn"
-        :disabled="loading"
-        class="bg-green-600 text-white rounded px-4 py-2 disabled:opacity-50"
-      >
-        {{ loading ? 'Loading...' : 'Sign In' }}
-      </button>
+            <input
+              v-model="email"
+              type="email"
+              placeholder="Email"
+              autofocus
+              autocomplete="email"
+              class="w-full border-menu bg-amber-50 rounded px-3 py-2 text-orange-950 placeholder:text-orange-700"
+            />
 
-      <button
-        @click="handleSignUp"
-        :disabled="loading"
-        class="bg-blue-600 text-white rounded px-4 py-2 disabled:opacity-50"
-      >
-        {{ loading ? 'Loading...' : 'Create Account' }}
-      </button>
+            <input
+              v-model="password"
+              type="password"
+              placeholder="Password"
+              autocomplete="current-password"
+              class="w-full border-menu bg-amber-50 rounded px-3 py-2 text-orange-950 placeholder:text-orange-700"
+            />
 
-      <button @click="handleForgotPassword" :disabled="loading" class="text-sm underline">
-        Forgot password?
-      </button>
-    </template>
+            <div class="space-y-2 pt-2">
+              <button
+                type="submit"
+                :disabled="loading || !email || !password"
+                class="w-full border-menu grad-green py-2 px-4 font-stardew-bold text-green-950 stardew-btn disabled:opacity-50"
+              >
+                {{ loading ? 'Loading...' : 'Sign In' }}
+              </button>
 
-    <template v-else-if="mode === 'forgot'">
-      <input v-model="email" type="email" placeholder="Email" class="border rounded px-3 py-2" />
+              <button
+                @click="handleSignUp"
+                :disabled="loading || !email || !password"
+                class="w-full border-menu grad-blue py-2 px-4 font-stardew-bold text-blue-950 stardew-btn disabled:opacity-50"
+              >
+                {{ loading ? 'Loading...' : 'Create Account' }}
+              </button>
 
-      <button
-        @click="handleSendReset"
-        :disabled="loading"
-        class="bg-amber-600 text-white rounded px-4 py-2 disabled:opacity-50"
-      >
-        {{ loading ? 'Loading...' : 'Send Reset Email' }}
-      </button>
+              <button
+                @click="handleForgotPassword"
+                :disabled="loading"
+                class="w-full text-sm font-stardew-bold text-orange-950 underline underline-offset-2 hover:opacity-80 disabled:opacity-50"
+              >
+                Forgot password?
+              </button>
+            </div>
+          </form>
+        </template>
 
-      <button @click="backToLogin" :disabled="loading" class="text-sm underline">
-        Back to login
-      </button>
-    </template>
+        <template v-else-if="mode === 'forgot'">
+          <h2 class="text-2xl font-stardew-thin text-orange-950 text-center">Reset Password</h2>
 
-    <template v-else>
-      <input
-        v-model="newPassword"
-        type="password"
-        placeholder="New password"
-        class="border rounded px-3 py-2"
-      />
+          <input
+            v-model="email"
+            type="email"
+            placeholder="Email"
+            class="w-full border-menu bg-amber-50 rounded px-3 py-2 text-orange-950 placeholder:text-orange-700"
+          />
 
-      <input
-        v-model="confirmPassword"
-        type="password"
-        placeholder="Confirm new password"
-        class="border rounded px-3 py-2"
-      />
+          <button
+            @click="handleSendReset"
+            :disabled="loading"
+            class="w-full border-menu grad-blue py-2 px-4 font-stardew-thin text-blue-950 stardew-btn disabled:opacity-50"
+          >
+            {{ loading ? 'Loading...' : 'Send Reset Email' }}
+          </button>
 
-      <button
-        @click="handleUpdatePassword"
-        :disabled="loading"
-        class="bg-green-600 text-white rounded px-4 py-2 disabled:opacity-50"
-      >
-        {{ loading ? 'Loading...' : 'Update Password' }}
-      </button>
-    </template>
+          <button
+            @click="backToLogin"
+            :disabled="loading"
+            class="w-full text-sm font-stardew-bold text-orange-950 underline underline-offset-2 disabled:opacity-50"
+          >
+            Back to login
+          </button>
+        </template>
 
-    <p v-if="message" class="text-sm text-center">
-      {{ message }}
-    </p>
+        <template v-else>
+          <h2 class="text-2xl font-stardew-bold text-orange-950 text-center">
+            Choose New Password
+          </h2>
+
+          <input
+            v-model="newPassword"
+            type="password"
+            placeholder="New password"
+            class="w-full border-menu bg-amber-50 rounded px-3 py-2 text-orange-950 placeholder:text-orange-700"
+          />
+
+          <input
+            v-model="confirmPassword"
+            type="password"
+            placeholder="Confirm new password"
+            class="w-full border-menu bg-amber-50 rounded px-3 py-2 text-orange-950 placeholder:text-orange-700"
+          />
+
+          <button
+            @click="handleUpdatePassword"
+            :disabled="loading"
+            class="w-full border-menu grad-green py-2 px-4 font-stardew-thin text-green-950 stardew-btn disabled:opacity-50"
+          >
+            {{ loading ? 'Loading...' : 'Update Password' }}
+          </button>
+        </template>
+
+        <p
+          v-if="message"
+          class="text-sm text-center font-stardew-bold"
+          :class="
+            message.toLowerCase().includes('success') || message.toLowerCase().includes('sent')
+              ? 'text-green-900'
+              : 'text-red-900'
+          "
+        >
+          {{ message }}
+        </p>
+      </div>
+    </div>
   </div>
 </template>
 <script setup lang="ts">
