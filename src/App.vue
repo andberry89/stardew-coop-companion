@@ -1,5 +1,6 @@
 <template>
   <router-view />
+  <ToastStack />
 </template>
 
 <script setup lang="ts">
@@ -7,6 +8,7 @@ import { onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { useBundlesStore } from '@/stores/bundles'
+import ToastStack from '@/components/ui/ToastStack.vue'
 
 const router = useRouter()
 const store = useBundlesStore()

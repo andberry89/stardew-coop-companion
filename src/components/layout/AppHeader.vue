@@ -2,7 +2,7 @@
   <header class="relative flex items-center justify-center py-4">
     <!-- LEFT: MENU -->
     <div class="absolute left-4 top-4">
-      <div class="border-menu grad-amber rounded-lg overflow-hidden w-56">
+      <div ref="menuRef" class="border-menu grad-amber rounded-lg overflow-hidden w-56">
         <!-- Header Row -->
         <div
           class="flex items-center gap-2 px-4 py-2 cursor-pointer select-none"
@@ -30,21 +30,24 @@
             </button>
 
             <button
-              class="w-full text-left hover:bg-yellow-200 px-2 py-1 rounded"
+              :disabled="exportLoading"
+              class="w-full text-left hover:bg-yellow-200 px-2 py-1 rounded disabled:opacity-50"
               @click="openExport"
             >
               Export State
             </button>
 
             <button
-              class="w-full text-left hover:bg-yellow-200 px-2 py-1 rounded"
+              :disabled="importLoading"
+              class="w-full text-left hover:bg-yellow-200 px-2 py-1 rounded disabled:opacity-50"
               @click="openImport"
             >
               Import State
             </button>
 
             <button
-              class="w-full text-left text-red-700 hover:bg-red-100 px-2 py-1 rounded"
+              :disabled="logoutLoading"
+              class="w-full text-left text-red-700 hover:bg-red-100 px-2 py-1 rounded disabled:opacity-50"
               @click="logout"
             >
               Logout
@@ -97,6 +100,7 @@
       </p>
     </div>
   </header>
+
   <BaseModal v-if="modalType === 'export'" @close="modalType = null">
     <h2 class="text-xl font-stardew-bold text-orange-950 mb-2">Export State</h2>
 
@@ -116,7 +120,8 @@
       </button>
 
       <button
-        class="border-menu grad-blue py-2 px-4 font-stardew-thin text-blue-950 stardew-btn"
+        :disabled="exportLoading || !exportCode"
+        class="border-menu grad-blue py-2 px-4 font-stardew-thin text-blue-950 stardew-btn disabled:opacity-50"
         @click="copyExport"
       >
         Copy
@@ -134,10 +139,6 @@
       aria-label="Import state"
     />
 
-    <p v-if="importMessage" class="text-sm text-red-600 mt-2">
-      {{ importMessage }}
-    </p>
-
     <div class="flex justify-end gap-2 mt-3">
       <button
         class="border-menu grad-amber py-2 px-4 font-stardew-thin text-orange-950 stardew-btn"
@@ -147,7 +148,8 @@
       </button>
 
       <button
-        class="border-menu grad-green py-2 px-4 font-stardew-thin text-green-950 stardew-btn"
+        :disabled="importLoading || !importInput.trim()"
+        class="border-menu grad-green py-2 px-4 font-stardew-thin text-green-950 stardew-btn disabled:opacity-50"
         @click="runImport"
       >
         Import
@@ -157,27 +159,42 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, onMounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useBundlesStore } from '@/stores/bundles'
 import { useRouter } from 'vue-router'
 import BaseModal from '@/components/ui/BaseModal.vue'
+import { useToast } from '@/composables/useToast'
 
 const store = useBundlesStore()
 const router = useRouter()
+const toast = useToast()
 
 const menuOpen = ref(false)
+const menuRef = ref<HTMLElement | null>(null)
 const partnerDisplayName = ref<string | null>(null)
 const currentUserId = ref<string | null>(null)
 const currentAvatar = ref<string | null>(null)
 const modalType = ref<'export' | 'import' | null>(null)
 const exportCode = ref<string | null>(null)
+const exportLoading = ref(false)
+const importLoading = ref(false)
+const logoutLoading = ref(false)
 const importInput = ref('')
-const importMessage = ref<string | null>(null)
 
 const farmName = computed(() => store.selectedFarm?.name ?? '')
 const farmCode = computed(() => store.selectedFarm?.code ?? '')
 const seatCount = computed(() => store.activeSessionUserIds.length)
+
+function handleClickOutside(event: MouseEvent) {
+  if (!menuOpen.value) return
+
+  const target = event.target as Node
+
+  if (menuRef.value && !menuRef.value.contains(target)) {
+    menuOpen.value = false
+  }
+}
 
 async function disconnect() {
   await store.disconnectFromFarm()
@@ -185,7 +202,15 @@ async function disconnect() {
 }
 
 async function logout() {
-  await supabase.auth.signOut()
+  if (logoutLoading.value) return
+
+  logoutLoading.value = true
+
+  try {
+    await supabase.auth.signOut()
+  } finally {
+    logoutLoading.value = false
+  }
 }
 
 function handleLeaveFarm() {
@@ -194,39 +219,74 @@ function handleLeaveFarm() {
 }
 
 async function openExport() {
+  if (exportLoading.value) return
+
   menuOpen.value = false
+  exportLoading.value = true
 
-  if (!store.currentFarmId) return
+  try {
+    if (!store.currentFarmId) return
 
-  const code = await store.exportStateCode()
-  exportCode.value = code ?? ''
-  modalType.value = 'export'
+    const code = await store.exportStateCode()
+    exportCode.value = code ?? ''
+    modalType.value = 'export'
+  } finally {
+    exportLoading.value = false
+  }
 }
 
 async function runImport() {
-  importMessage.value = null
+  if (importLoading.value) return
+
+  importLoading.value = true
 
   try {
     await store.importStateCode(importInput.value)
-    importMessage.value = 'State imported successfully.'
+    toast.success('State imported')
+    modalType.value = null
+    importInput.value = ''
   } catch (err) {
-    importMessage.value = err instanceof Error ? err.message : 'Import failed.'
+    toast.error(err instanceof Error ? err.message : 'Import failed')
+  } finally {
+    importLoading.value = false
   }
 }
 
 async function copyExport() {
   if (!exportCode.value) return
-  await navigator.clipboard.writeText(exportCode.value)
+
+  try {
+    await navigator.clipboard.writeText(exportCode.value)
+    toast.success('State copied')
+    return
+  } catch {
+    const textarea = document.createElement('textarea')
+    textarea.value = exportCode.value
+    textarea.setAttribute('readonly', '')
+    textarea.style.position = 'absolute'
+    textarea.style.left = '-9999px'
+    document.body.appendChild(textarea)
+    textarea.select()
+
+    const didCopy = document.execCommand('copy')
+    document.body.removeChild(textarea)
+
+    if (didCopy) {
+      toast.success('State copied')
+    } else {
+      toast.error('Copy failed')
+    }
+  }
 }
 
 function openImport() {
   menuOpen.value = false
   importInput.value = ''
-  importMessage.value = null
   modalType.value = 'import'
 }
 
 onMounted(async () => {
+  document.addEventListener('click', handleClickOutside)
   const { data } = await supabase.auth.getUser()
   currentUserId.value = data.user?.id ?? null
 
@@ -265,4 +325,7 @@ watch(
   },
   { immediate: true },
 )
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 </script>
