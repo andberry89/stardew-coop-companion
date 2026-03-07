@@ -107,20 +107,29 @@
       aria-label="Exported state"
     />
 
-    <div class="flex justify-end gap-2">
-      <button
-        class="border-menu grad-amber py-2 px-4 font-stardew-thin text-orange-950 stardew-btn"
-        @click="modalType = null"
-      >
-        Close
-      </button>
+    <div class="space-y-2">
+      <p v-if="copyMessage" class="text-sm text-green-900 font-stardew-bold text-right">
+        {{ copyMessage }}
+      </p>
 
-      <button
-        class="border-menu grad-blue py-2 px-4 font-stardew-thin text-blue-950 stardew-btn"
-        @click="copyExport"
-      >
-        Copy
-      </button>
+      <div class="flex justify-end gap-2">
+        <button
+          class="border-menu grad-amber py-2 px-4 font-stardew-thin text-orange-950 stardew-btn"
+          @click="
+            modalType = null
+            copyMessage = ''
+          "
+        >
+          Close
+        </button>
+
+        <button
+          class="border-menu grad-blue py-2 px-4 font-stardew-thin text-blue-950 stardew-btn"
+          @click="copyExport"
+        >
+          Copy
+        </button>
+      </div>
     </div>
   </BaseModal>
 
@@ -173,6 +182,7 @@ const currentUserId = ref<string | null>(null)
 const currentAvatar = ref<string | null>(null)
 const modalType = ref<'export' | 'import' | null>(null)
 const exportCode = ref<string | null>(null)
+const copyMessage = ref('')
 const importInput = ref('')
 const importMessage = ref<string | null>(null)
 
@@ -206,6 +216,7 @@ function handleLeaveFarm() {
 
 async function openExport() {
   menuOpen.value = false
+  copyMessage.value = ''
 
   if (!store.currentFarmId) return
 
@@ -227,11 +238,20 @@ async function runImport() {
 
 async function copyExport() {
   if (!exportCode.value) return
+
   await navigator.clipboard.writeText(exportCode.value)
+  copyMessage.value = 'Copied!'
+
+  window.setTimeout(() => {
+    if (copyMessage.value === 'Copied!') {
+      copyMessage.value = ''
+    }
+  }, 2000)
 }
 
 function openImport() {
   menuOpen.value = false
+  copyMessage.value = ''
   importInput.value = ''
   importMessage.value = null
   modalType.value = 'import'
