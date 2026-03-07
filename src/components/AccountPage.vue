@@ -15,7 +15,8 @@
           </button>
 
           <button
-            class="border-menu grad-red py-2 px-4 font-stardew-thin text-red-950 stardew-btn"
+            :disabled="logoutLoading"
+            class="border-menu grad-red py-2 px-4 font-stardew-thin text-red-950 stardew-btn disabled:opacity-50"
             @click="logout"
           >
             Logout
@@ -70,7 +71,8 @@
 
         <div class="flex gap-3">
           <button
-            class="border-menu grad-green py-2 px-4 font-stardew-thin text-green-950 stardew-btn"
+            :disabled="saveProfileLoading || !displayName.trim()"
+            class="border-menu grad-green py-2 px-4 font-stardew-thin text-green-950 stardew-btn disabled:opacity-50"
             @click="saveProfile"
           >
             Save
@@ -111,7 +113,8 @@
 
           <div v-if="isEditing" class="flex gap-2 pt-2">
             <button
-              class="border-menu grad-amber py-2 px-3 font-stardew-thin text-orange-950 stardew-btn text-xs"
+              :disabled="leavingFarmId === farm.id"
+              class="border-menu grad-amber py-2 px-3 font-stardew-thin text-orange-950 stardew-btn text-xs disabled:opacity-50"
               @click="leaveFarm(farm.id)"
             >
               Leave
@@ -119,7 +122,8 @@
 
             <button
               v-if="farm.created_by === currentUserId"
-              class="border-menu grad-red py-2 px-3 font-stardew-thin text-red-950 stardew-btn text-xs"
+              :disabled="deleteFarmLoading"
+              class="border-menu grad-red py-2 px-3 font-stardew-thin text-red-950 stardew-btn text-xs disabled:opacity-50"
               @click="farmPendingDelete = farm.id"
             >
               Delete
@@ -145,7 +149,8 @@
           />
 
           <button
-            class="border-menu grad-blue py-2 px-4 font-stardew-thin text-blue-950 stardew-btn"
+            :disabled="createFarmLoading"
+            class="border-menu grad-blue py-2 px-4 font-stardew-thin text-blue-950 stardew-btn disabled:opacity-50"
             @click="createFarm"
           >
             Create
@@ -167,7 +172,8 @@
           />
 
           <button
-            class="border-menu grad-blue py-2 px-4 font-stardew-thin text-blue-950 stardew-btn"
+            :disabled="joinFarmLoading || !joinCode.trim()"
+            class="border-menu grad-blue py-2 px-4 font-stardew-thin text-blue-950 stardew-btn disabled:opacity-50"
             @click="joinFarm"
           >
             Join
@@ -197,7 +203,8 @@
           </button>
 
           <button
-            class="border-menu grad-red py-2 px-4 font-stardew-thin text-red-950 stardew-btn"
+            :disabled="deleteFarmLoading"
+            class="border-menu grad-red py-2 px-4 font-stardew-thin text-red-950 stardew-btn disabled:opacity-50"
             @click="confirmDelete"
           >
             Delete
@@ -228,6 +235,12 @@ const joinCode = ref('')
 const farmError = ref<string | null>(null)
 const currentUserId = ref<string | null>(null)
 const farmPendingDelete = ref<string | null>(null)
+const logoutLoading = ref(false)
+const saveProfileLoading = ref(false)
+const createFarmLoading = ref(false)
+const joinFarmLoading = ref(false)
+const leavingFarmId = ref<string | null>(null)
+const deleteFarmLoading = ref(false)
 
 const avatarOptions = [
   'abigail',
@@ -290,27 +303,45 @@ onMounted(async () => {
 })
 
 async function logout() {
-  await supabase.auth.signOut()
+  if (logoutLoading.value) return
+
+  logoutLoading.value = true
+
+  try {
+    await supabase.auth.signOut()
+  } finally {
+    logoutLoading.value = false
+  }
 }
 
 async function saveProfile() {
-  const { data } = await supabase.auth.getUser()
-  if (!data.user) return
+  if (saveProfileLoading.value) return
 
   const trimmed = displayName.value.trim()
   if (!trimmed) return
 
-  const { error } = await supabase
-    .from('profiles')
-    .update({
-      display_name: trimmed,
-      avatar: avatar.value,
-    })
-    .eq('id', data.user.id)
+  saveProfileLoading.value = true
 
-  console.log('Profile update error:', error)
+  try {
+    const { data } = await supabase.auth.getUser()
+    if (!data.user) return
 
-  isEditing.value = false
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        display_name: trimmed,
+        avatar: avatar.value,
+      })
+      .eq('id', data.user.id)
+
+    console.log('Profile update error:', error)
+
+    if (!error) {
+      isEditing.value = false
+    }
+  } finally {
+    saveProfileLoading.value = false
+  }
 }
 
 function cancelEdit() {
@@ -318,90 +349,113 @@ function cancelEdit() {
 }
 
 async function createFarm() {
+  if (createFarmLoading.value) return
+
   farmError.value = null
+  createFarmLoading.value = true
 
-  const { data } = await supabase.auth.getUser()
-  if (!data.user) return
+  try {
+    const { data } = await supabase.auth.getUser()
+    if (!data.user) return
 
-  const name = newFarmName.value.trim()
+    const name = newFarmName.value.trim()
 
-  if (!name) {
-    farmError.value = 'Farm name cannot be empty.'
-    return
-  }
+    if (!name) {
+      farmError.value = 'Farm name cannot be empty.'
+      return
+    }
 
-  if (name.length > 40) {
-    farmError.value = 'Farm name must be 40 characters or fewer.'
-    return
-  }
+    if (name.length > 40) {
+      farmError.value = 'Farm name must be 40 characters or fewer.'
+      return
+    }
 
-  const code = Math.random().toString(36).substring(2, 8).toUpperCase()
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase()
 
-  const { data: farm, error } = await supabase
-    .from('farms')
-    .insert({
-      name,
-      code,
-      created_by: data.user.id,
+    const { data: farm, error } = await supabase
+      .from('farms')
+      .insert({
+        name,
+        code,
+        created_by: data.user.id,
+      })
+      .select()
+      .single()
+
+    if (error || !farm) {
+      farmError.value = 'Failed to create farm.'
+      return
+    }
+
+    await supabase.from('farm_members').insert({
+      farm_id: farm.id,
+      user_id: data.user.id,
+      role: 'admin',
     })
-    .select()
-    .single()
 
-  if (error || !farm) {
-    farmError.value = 'Failed to create farm.'
-    return
+    farms.value = await getMyFarms()
+    newFarmName.value = ''
+  } finally {
+    createFarmLoading.value = false
   }
-
-  await supabase.from('farm_members').insert({
-    farm_id: farm.id,
-    user_id: data.user.id,
-    role: 'admin',
-  })
-
-  farms.value = await getMyFarms()
-  newFarmName.value = ''
 }
+
 async function connectToFarm(farm: Farm) {
   await store.connectToFarm(farm)
   router.push(`/farm/${farm.code}`)
 }
 
 async function joinFarm() {
-  const farm = await getFarmByCode(joinCode.value.trim().toUpperCase())
-  if (!farm) return
+  if (joinFarmLoading.value) return
 
-  const { data } = await supabase.auth.getUser()
-  if (!data.user) return
+  joinFarmLoading.value = true
 
-  await supabase.from('farm_members').insert({
-    farm_id: farm.id,
-    user_id: data.user.id,
-    role: 'member',
-  })
+  try {
+    const farm = await getFarmByCode(joinCode.value.trim().toUpperCase())
+    if (!farm) return
 
-  farms.value = await getMyFarms()
-  joinCode.value = ''
+    const { data } = await supabase.auth.getUser()
+    if (!data.user) return
+
+    await supabase.from('farm_members').insert({
+      farm_id: farm.id,
+      user_id: data.user.id,
+      role: 'member',
+    })
+
+    farms.value = await getMyFarms()
+    joinCode.value = ''
+  } finally {
+    joinFarmLoading.value = false
+  }
 }
 
 async function leaveFarm(farmId: string) {
+  if (leavingFarmId.value) return
   if (!currentUserId.value) {
     console.log('No current user')
     return
   }
 
-  const { error } = await supabase.from('farm_members').delete().match({
-    farm_id: farmId,
-    user_id: currentUserId.value,
-  })
+  leavingFarmId.value = farmId
 
-  console.log('Leave error:', error)
+  try {
+    const { error } = await supabase.from('farm_members').delete().match({
+      farm_id: farmId,
+      user_id: currentUserId.value,
+    })
 
-  if (store.currentFarmId === farmId) {
-    await store.disconnectFromFarm()
-    router.push('/account')
+    console.log('Leave error:', error)
+
+    if (store.currentFarmId === farmId) {
+      await store.disconnectFromFarm()
+      router.push('/account')
+    }
+
+    farms.value = await getMyFarms()
+  } finally {
+    leavingFarmId.value = null
   }
-
-  farms.value = await getMyFarms()
 }
 
 async function deleteFarm(farmId: string) {
@@ -427,10 +481,17 @@ async function deleteFarm(farmId: string) {
 
   farms.value = await getMyFarms()
 }
-async function confirmDelete() {
-  if (!farmPendingDelete.value) return
 
-  await deleteFarm(farmPendingDelete.value)
-  farmPendingDelete.value = null
+async function confirmDelete() {
+  if (!farmPendingDelete.value || deleteFarmLoading.value) return
+
+  deleteFarmLoading.value = true
+
+  try {
+    await deleteFarm(farmPendingDelete.value)
+    farmPendingDelete.value = null
+  } finally {
+    deleteFarmLoading.value = false
+  }
 }
 </script>

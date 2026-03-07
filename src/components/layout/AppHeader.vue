@@ -30,21 +30,24 @@
             </button>
 
             <button
-              class="w-full text-left hover:bg-yellow-200 px-2 py-1 rounded"
+              :disabled="exportLoading"
+              class="w-full text-left hover:bg-yellow-200 px-2 py-1 rounded disabled:opacity-50"
               @click="openExport"
             >
               Export State
             </button>
 
             <button
-              class="w-full text-left hover:bg-yellow-200 px-2 py-1 rounded"
+              :disabled="importLoading"
+              class="w-full text-left hover:bg-yellow-200 px-2 py-1 rounded disabled:opacity-50"
               @click="openImport"
             >
               Import State
             </button>
 
             <button
-              class="w-full text-left text-red-700 hover:bg-red-100 px-2 py-1 rounded"
+              :disabled="logoutLoading"
+              class="w-full text-left text-red-700 hover:bg-red-100 px-2 py-1 rounded disabled:opacity-50"
               @click="logout"
             >
               Logout
@@ -115,16 +118,14 @@
       <div class="flex justify-end gap-2">
         <button
           class="border-menu grad-amber py-2 px-4 font-stardew-thin text-orange-950 stardew-btn"
-          @click="
-            modalType = null
-            copyMessage = ''
-          "
+          @click="((modalType = null), (copyMessage = ''))"
         >
           Close
         </button>
 
         <button
-          class="border-menu grad-blue py-2 px-4 font-stardew-thin text-blue-950 stardew-btn"
+          :disabled="exportLoading || !exportCode"
+          class="border-menu grad-blue py-2 px-4 font-stardew-thin text-blue-950 stardew-btn disabled:opacity-50"
           @click="copyExport"
         >
           Copy
@@ -156,7 +157,8 @@
       </button>
 
       <button
-        class="border-menu grad-green py-2 px-4 font-stardew-thin text-green-950 stardew-btn"
+        :disabled="importLoading || !importInput.trim()"
+        class="border-menu grad-green py-2 px-4 font-stardew-thin text-green-950 stardew-btn disabled:opacity-50"
         @click="runImport"
       >
         Import
@@ -183,6 +185,9 @@ const currentAvatar = ref<string | null>(null)
 const modalType = ref<'export' | 'import' | null>(null)
 const exportCode = ref<string | null>(null)
 const copyMessage = ref('')
+const exportLoading = ref(false)
+const importLoading = ref(false)
+const logoutLoading = ref(false)
 const importInput = ref('')
 const importMessage = ref<string | null>(null)
 
@@ -206,7 +211,15 @@ async function disconnect() {
 }
 
 async function logout() {
-  await supabase.auth.signOut()
+  if (logoutLoading.value) return
+
+  logoutLoading.value = true
+
+  try {
+    await supabase.auth.signOut()
+  } finally {
+    logoutLoading.value = false
+  }
 }
 
 function handleLeaveFarm() {
@@ -215,35 +228,62 @@ function handleLeaveFarm() {
 }
 
 async function openExport() {
+  if (exportLoading.value) return
+
   menuOpen.value = false
   copyMessage.value = ''
+  exportLoading.value = true
 
-  if (!store.currentFarmId) return
+  try {
+    if (!store.currentFarmId) return
 
-  const code = await store.exportStateCode()
-  exportCode.value = code ?? ''
-  modalType.value = 'export'
+    const code = await store.exportStateCode()
+    exportCode.value = code ?? ''
+    modalType.value = 'export'
+  } finally {
+    exportLoading.value = false
+  }
 }
 
 async function runImport() {
+  if (importLoading.value) return
+
   importMessage.value = null
+  importLoading.value = true
 
   try {
     await store.importStateCode(importInput.value)
     importMessage.value = 'State imported successfully.'
   } catch (err) {
     importMessage.value = err instanceof Error ? err.message : 'Import failed.'
+  } finally {
+    importLoading.value = false
   }
 }
 
 async function copyExport() {
   if (!exportCode.value) return
 
-  await navigator.clipboard.writeText(exportCode.value)
-  copyMessage.value = 'Copied!'
+  try {
+    await navigator.clipboard.writeText(exportCode.value)
+    copyMessage.value = 'Copied!'
+  } catch {
+    const textarea = document.createElement('textarea')
+    textarea.value = exportCode.value
+    textarea.setAttribute('readonly', '')
+    textarea.style.position = 'absolute'
+    textarea.style.left = '-9999px'
+    document.body.appendChild(textarea)
+    textarea.select()
+
+    const didCopy = document.execCommand('copy')
+    document.body.removeChild(textarea)
+
+    copyMessage.value = didCopy ? 'Copied!' : 'Copy failed.'
+  }
 
   window.setTimeout(() => {
-    if (copyMessage.value === 'Copied!') {
+    if (copyMessage.value === 'Copied!' || copyMessage.value === 'Copy failed.') {
       copyMessage.value = ''
     }
   }, 2000)
