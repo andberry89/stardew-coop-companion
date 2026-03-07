@@ -1,6 +1,6 @@
 <template>
   <aside
-    class="w-46 p-4 border-menu grad-background rounded-lg flex flex-col gap-4 font-quicksand text-orange-950 h-max sticky top-6 self-start"
+    class="w-46 p-4 border-menu grad-amber rounded-lg flex flex-col gap-4 font-quicksand text-orange-950 h-max sticky top-6 self-start"
   >
     <h2 class="font-stardew-bold text-center">Filter</h2>
 

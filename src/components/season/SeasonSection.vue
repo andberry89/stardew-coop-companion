@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 p-4 border-menu grad-background shadow-lg rounded-lg">
+  <div class="space-y-6 p-4 border-menu grad-amber shadow-lg rounded-lg">
     <!-- Season Header -->
     <div class="flex justify-between items-center border-b pb-2">
       <h2 class="text-xl font-stardew-bold text-orange-950">

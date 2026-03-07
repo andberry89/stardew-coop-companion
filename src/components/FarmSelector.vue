@@ -46,7 +46,7 @@
 import { ref, onMounted } from 'vue'
 import { getMyFarms } from '@/lib/farms'
 import { useBundlesStore } from '@/stores/bundles'
-import type { Farm } from '@/lib/farms'
+import type { Farm } from '@/types'
 import { supabase } from '@/lib/supabase'
 
 const farms = ref<Farm[]>([])

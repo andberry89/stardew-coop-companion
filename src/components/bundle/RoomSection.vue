@@ -1,5 +1,5 @@
 <template>
-  <section class="space-y-4 p-1 border-menu grad-background shadow-lg">
+  <section class="space-y-4 p-1 border-menu grad-amber shadow-lg">
     <div class="px-4 py-2 flex justify-between items-center">
       <h2 class="text-xl font-stardew-bold text-orange-950">
         {{ roomSection.room.name }}
