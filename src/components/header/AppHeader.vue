@@ -40,11 +40,11 @@
 </template>
 
 <script setup lang="ts">
-import HeaderMenu from '@/components/layout/HeaderMenu.vue'
-import HeaderLogo from '@/components/layout/HeaderLogo.vue'
-import HeaderFarmStatus from '@/components/layout/HeaderFarmStatus.vue'
-import ExportModal from '@/components/layout/ExportModal.vue'
-import ImportModal from '@/components/layout/ImportModal.vue'
+import HeaderMenu from '@/components/header/HeaderMenu.vue'
+import HeaderLogo from '@/components/header/HeaderLogo.vue'
+import HeaderFarmStatus from '@/components/header/HeaderFarmStatus.vue'
+import ExportModal from '@/components/header/ExportModal.vue'
+import ImportModal from '@/components/header/ImportModal.vue'
 import { useAppHeader } from '@/composables/useAppHeader'
 
 const {
