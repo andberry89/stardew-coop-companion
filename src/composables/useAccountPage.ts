@@ -2,6 +2,7 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { getMyFarms, getFarmByCode, type Farm } from '@/lib/farms'
+import { getProfile, updateProfile } from '@/lib/profiles'
 import { useBundlesStore } from '@/stores/bundles'
 import { useToast } from '@/composables/useToast'
 
@@ -64,12 +65,7 @@ export function useAccountPage() {
     email.value = data.user?.email ?? null
 
     if (data.user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('display_name, avatar')
-        .eq('id', data.user.id)
-        .single()
-
+      const profile = await getProfile(data.user.id)
       displayName.value = profile?.display_name ?? ''
       avatar.value = profile?.avatar ?? null
     }
@@ -111,13 +107,10 @@ export function useAccountPage() {
       const { data } = await supabase.auth.getUser()
       if (!data.user) return
 
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          display_name: trimmed,
-          avatar: avatar.value,
-        })
-        .eq('id', data.user.id)
+      const { error } = await updateProfile(data.user.id, {
+        display_name: trimmed,
+        avatar: avatar.value,
+      })
 
       if (error) {
         toast.error('Failed to save profile')
