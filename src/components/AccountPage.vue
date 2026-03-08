@@ -180,41 +180,18 @@
       </div>
     </div>
 
-    <!-- DELETE MODAL -->
-    <div
+    <DeleteFarmModal
       v-if="farmPendingDelete"
-      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-    >
-      <div class="border-menu grad-amber rounded-lg p-6 w-full max-w-sm space-y-4">
-        <h3 class="font-stardew-bold text-orange-950 text-lg">Delete Farm?</h3>
-
-        <p class="text-sm text-orange-900">
-          This will permanently delete the farm and all associated data.
-        </p>
-
-        <div class="flex justify-end gap-2">
-          <button
-            class="border-menu grad-amber py-2 px-4 font-stardew-thin text-orange-950 stardew-btn"
-            @click="farmPendingDelete = null"
-          >
-            Cancel
-          </button>
-
-          <button
-            :disabled="deleteFarmLoading"
-            class="border-menu grad-red py-2 px-4 font-stardew-thin text-red-950 stardew-btn disabled:opacity-50"
-            @click="confirmDelete"
-          >
-            Delete
-          </button>
-        </div>
-      </div>
-    </div>
+      :loading="deleteFarmLoading"
+      @close="farmPendingDelete = null"
+      @confirm="confirmDelete"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import LoadingOverlay from '@/components/ui/LoadingOverlay.vue'
+import DeleteFarmModal from '@/components/account/DeleteFarmModal.vue'
 import { useAccountPage } from '@/composables/useAccountPage'
 
 const {
