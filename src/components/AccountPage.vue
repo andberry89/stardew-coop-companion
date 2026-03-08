@@ -1,5 +1,6 @@
 <template>
   <div class="max-w-6xl mx-auto p-6 space-y-8">
+    <LoadingOverlay v-if="connectingFarmId" title="Connecting..." message="Preparing your farm." />
     <!-- PROFILE PANEL -->
     <div class="border-4 border-yellow-800 grad-amber rounded-lg p-6 space-y-6 shadow-md">
       <div class="flex items-center justify-between">
@@ -105,6 +106,7 @@
           <div class="text-md text-gray-600">Code: {{ farm.code }}</div>
 
           <button
+            :disabled="!!connectingFarmId"
             class="border-menu grad-green py-2 px-4 font-stardew-thin text-green-950 stardew-btn"
             @click="connectToFarm(farm)"
           >
@@ -218,6 +220,7 @@ import { supabase } from '@/lib/supabase'
 import { getMyFarms, getFarmByCode, type Farm } from '@/lib/farms'
 import { useBundlesStore } from '@/stores/bundles'
 import { useToast } from '@/composables/useToast'
+import LoadingOverlay from '@/components/ui/LoadingOverlay.vue'
 
 const router = useRouter()
 const store = useBundlesStore()
@@ -239,6 +242,7 @@ const createFarmLoading = ref(false)
 const joinFarmLoading = ref(false)
 const leavingFarmId = ref<string | null>(null)
 const deleteFarmLoading = ref(false)
+const connectingFarmId = ref<string | null>(null)
 
 const avatarOptions = [
   'abigail',
@@ -405,8 +409,27 @@ async function createFarm() {
 }
 
 async function connectToFarm(farm: Farm) {
-  await store.connectToFarm(farm)
-  router.push(`/farm/${farm.code}`)
+  if (connectingFarmId.value) return
+
+  connectingFarmId.value = farm.id
+
+  try {
+    await store.connectToFarm(farm)
+
+    if (store.farmStatus === 'full') {
+      toast.error('Farm is full')
+      return
+    }
+
+    if (store.farmStatus === 'error') {
+      toast.error('Failed to connect to farm')
+      return
+    }
+
+    await router.push(`/farm/${farm.code}`)
+  } finally {
+    connectingFarmId.value = null
+  }
 }
 
 async function joinFarm() {
