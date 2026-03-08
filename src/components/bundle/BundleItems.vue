@@ -36,7 +36,7 @@
 <script setup lang="ts">
 import type { BundleItem, Season } from '@/types'
 import { isItemAvailableInSeason } from '@/utils/season'
-import ItemIcon from '@/components/shared/ItemIcon.vue'
+import ItemIcon from '@/components/ui/ItemIcon.vue'
 import BundleItemTooltip from './BundleItemTooltip.vue'
 
 const { bundleFull, items, selectedSeason } = defineProps<{
