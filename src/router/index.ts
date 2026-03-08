@@ -3,9 +3,9 @@ import { supabase } from '@/lib/supabase'
 import { useBundlesStore } from '@/stores/bundles'
 import { getFarmByCode } from '@/lib/farms'
 
-import Login from '@/components/AuthLogin.vue'
-import AccountPage from '@/components/AccountPage.vue'
-import FarmPage from '@/components/pages/FarmPage.vue'
+import LoginPage from '@/pages/LoginPage.vue'
+import AccountPage from '@/pages/AccountPage.vue'
+import FarmPage from '@/pages/FarmPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -13,7 +13,7 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      component: Login,
+      component: LoginPage,
     },
     {
       path: '/account',
