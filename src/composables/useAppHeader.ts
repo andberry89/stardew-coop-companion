@@ -1,6 +1,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
+import { getProfileAvatar, getProfileDisplayName } from '@/lib/profiles'
 import { useBundlesStore } from '@/stores/bundles'
 import { useToast } from '@/composables/useToast'
 
@@ -113,13 +114,7 @@ export function useAppHeader() {
     currentUserId.value = data.user?.id ?? null
 
     if (data.user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('avatar')
-        .eq('id', data.user.id)
-        .single()
-
-      currentAvatar.value = profile?.avatar ?? null
+      currentAvatar.value = await getProfileAvatar(data.user.id)
     }
   })
 
@@ -137,13 +132,7 @@ export function useAppHeader() {
         return
       }
 
-      const { data } = await supabase
-        .from('profiles')
-        .select('display_name')
-        .eq('id', partnerId)
-        .single()
-
-      partnerDisplayName.value = data?.display_name ?? null
+      partnerDisplayName.value = await getProfileDisplayName(partnerId)
     },
     { immediate: true },
   )
