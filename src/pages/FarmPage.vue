@@ -40,7 +40,7 @@ import { watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBundlesStore } from '@/stores/bundles'
 
-import AppHeader from '@/components/layout/AppHeader.vue'
+import AppHeader from '@/components/header/AppHeader.vue'
 import ViewToggle from '@/components/layout/ViewToggle.vue'
 import FilterPanel from '@/components/layout/FilterPanel.vue'
 import BundlesView from '@/components/bundle/BundlesView.vue'
