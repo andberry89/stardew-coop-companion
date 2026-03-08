@@ -80,7 +80,7 @@
 
       <p>
         <span class="font-bold">Players:</span>
-        <span :class="seatCount === 2 ? 'text-green-400' : 'text-yellow-300'">
+        <span :class="seatCount === 2 ? 'text-green-600' : 'text-yellow-300'">
           &nbsp;{{ seatCount }} / 2
         </span>
       </p>

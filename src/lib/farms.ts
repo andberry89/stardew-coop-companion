@@ -18,8 +18,11 @@ export async function getMyFarms(): Promise<Farm[]> {
 }
 
 export async function getFarmByCode(code: string) {
-  const { data, error } = await supabase.from('farms').select('*').eq('code', code).single()
+  const { data, error } = await supabase.from('farms').select('*').eq('code', code).maybeSingle()
 
-  if (error) return null
+  if (error) {
+    throw error
+  }
+
   return data
 }

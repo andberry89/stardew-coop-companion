@@ -462,6 +462,9 @@ async function joinFarm() {
     farms.value = await getMyFarms()
     joinCode.value = ''
     toast.success('Joined farm')
+  } catch (err) {
+    console.error('joinFarm error:', err)
+    toast.error('Unable to look up farm code')
   } finally {
     joinFarmLoading.value = false
   }
