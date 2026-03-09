@@ -1,5 +1,6 @@
 // src/stores/bundles.ts
 import { defineStore } from 'pinia'
+import { buildStateCode, parseStateCode } from '@/lib/bundles/stateCode'
 import { supabase } from '@/lib/supabase'
 
 import type {
@@ -20,7 +21,6 @@ type CatalogPayload = {
   bundles: Bundle[] // Bundle must include: room: RoomId
   entries: BundleEntry[]
 }
-const STATE_SCHEMA_VERSION = 1
 
 export const useBundlesStore = defineStore('bundles', {
   state: () => ({
@@ -573,32 +573,7 @@ export const useBundlesStore = defineStore('bundles', {
     async importStateCode(code: string) {
       if (!this.currentFarmId) return
 
-      let payload: {
-        schema: number
-        entries: Record<string, { c?: boolean; t?: number }>
-      }
-
-      if (code.startsWith('SCC2:')) {
-        const encoded = code.replace('SCC2:', '')
-        const json = await this.gunzipString(encoded)
-        payload = JSON.parse(json)
-      } else if (code.startsWith('SCC1:')) {
-        const encoded = code.replace('SCC1:', '')
-        const json = atob(encoded)
-        payload = JSON.parse(json)
-      } else {
-        throw new Error('Invalid state code')
-      }
-
-      // Validate schema version
-      if (payload.schema !== STATE_SCHEMA_VERSION) {
-        throw new Error(`Unsupported state schema version: ${payload.schema}`)
-      }
-
-      // Validate entries structure
-      if (typeof payload.entries !== 'object' || payload.entries === null) {
-        throw new Error('Invalid state payload structure')
-      }
+      const payload = await parseStateCode(code)
 
       await supabase.rpc('import_state_code', {
         input_farm_id: this.currentFarmId,
@@ -606,47 +581,10 @@ export const useBundlesStore = defineStore('bundles', {
       })
     },
 
-    async gzipString(input: string): Promise<string> {
-      const stream = new CompressionStream('gzip')
-      const writer = stream.writable.getWriter()
-      writer.write(new TextEncoder().encode(input))
-      writer.close()
-
-      const compressed = await new Response(stream.readable).arrayBuffer()
-      return btoa(String.fromCharCode(...new Uint8Array(compressed)))
-    },
-
-    async gunzipString(base64: string): Promise<string> {
-      const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
-      const stream = new DecompressionStream('gzip')
-      const writer = stream.writable.getWriter()
-      writer.write(bytes)
-      writer.close()
-
-      const decompressed = await new Response(stream.readable).arrayBuffer()
-      return new TextDecoder().decode(decompressed)
-    },
-
     async exportStateCode(): Promise<string | null> {
       if (!this.currentFarmId) return null
 
-      const payload = {
-        schema: 1,
-        entries: Object.fromEntries(
-          Object.entries(this.progress.entryCompletedById).map(([key, value]) => [
-            key,
-            {
-              c: value,
-              t: Date.now(),
-            },
-          ]),
-        ),
-      }
-
-      const json = JSON.stringify(payload)
-      const compressed = await this.gzipString(json)
-
-      return `SCC2:${compressed}`
+      return await buildStateCode(this.progress.entryCompletedById)
     },
 
     // ─────────────────────────────
