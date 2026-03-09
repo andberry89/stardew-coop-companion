@@ -35,6 +35,10 @@ export function useAppHeader() {
     logoutLoading.value = true
 
     try {
+      if (store.currentFarmId) {
+        await store.disconnectFromFarm()
+      }
+
       await supabase.auth.signOut()
     } finally {
       logoutLoading.value = false
