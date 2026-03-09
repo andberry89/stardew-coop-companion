@@ -1,5 +1,11 @@
 // src/stores/bundles.ts
 import { defineStore } from 'pinia'
+import {
+  claimFarmSeat,
+  createFarmSessionsChannel,
+  createFarmStateChannel,
+  removeFarmSession,
+} from '@/lib/bundles/connection'
 import { buildStateCode, parseStateCode } from '@/lib/bundles/stateCode'
 import { supabase } from '@/lib/supabase'
 
@@ -7,12 +13,14 @@ import type {
   Bundle,
   BundleEntry,
   BundleItem,
+  FarmConnectionStatus,
   Item,
-  Season,
-  SeasonItemEntry,
   Progress,
   Room,
   RoomId,
+  Season,
+  SeasonItemEntry,
+  SelectedFarm,
 } from '@/types'
 
 type CatalogPayload = {
@@ -28,14 +36,10 @@ export const useBundlesStore = defineStore('bundles', {
     // Farm Connection State
     // ─────────────────────────────
     currentFarmId: null as string | null,
-    selectedFarm: null as null | {
-      id: string
-      name: string
-      code: string
-    },
+    selectedFarm: null as SelectedFarm | null,
 
     farmSessionId: null as string | null,
-    farmStatus: 'idle' as 'idle' | 'connecting' | 'connected' | 'reconnecting' | 'full' | 'error',
+    farmStatus: 'idle' as FarmConnectionStatus,
 
     heartbeatTimer: null as ReturnType<typeof setInterval> | null,
     unsubscribeFarmChannel: null as (() => void) | null,
@@ -341,14 +345,11 @@ export const useBundlesStore = defineStore('bundles', {
     // ─────────────────────────────
     // Farm Connection Lifecycle
     // ─────────────────────────────
-    async connectToFarm(farm: { id: string; name: string; code: string }) {
-      // Claim seat → load state → subscribe → start heartbeat
+    async connectToFarm(farm: SelectedFarm) {
       this.stopHeartbeat()
       this.farmStatus = 'connecting'
 
-      const { data, error } = await supabase.rpc('claim_seat', {
-        input_farm_id: farm.id,
-      })
+      const { data, error } = await claimFarmSeat(farm.id)
 
       if (error) {
         if (error.code === 'P0001' && error.message === 'Farm is full') {
@@ -398,10 +399,7 @@ export const useBundlesStore = defineStore('bundles', {
         const myId = userData?.user?.id ?? null
 
         if (myId && this.currentFarmId) {
-          const { error } = await supabase
-            .from('farm_sessions')
-            .delete()
-            .match({ farm_id: this.currentFarmId, user_id: myId })
+          const { error } = await removeFarmSession(this.currentFarmId, myId)
 
           if (error) {
             console.warn('Failed to delete farm_session on disconnect:', error)
@@ -426,86 +424,39 @@ export const useBundlesStore = defineStore('bundles', {
     subscribeToFarm() {
       if (!this.currentFarmId) return
 
-      // clean previous subscription
       if (this.unsubscribeFarmChannel) {
         this.unsubscribeFarmChannel()
         this.unsubscribeFarmChannel = null
       }
 
-      const channel = supabase
-        .channel(`farm-${this.currentFarmId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'farm_state',
-            filter: `farm_id=eq.${this.currentFarmId}`,
-          },
-          (payload) => {
-            const entries = payload.new.state?.entries ?? {}
+      this.unsubscribeFarmChannel = createFarmStateChannel(this.currentFarmId, {
+        onStateUpdate: (entries) => {
+          this.progress.entryCompletedById = Object.fromEntries(
+            Object.entries(entries).map(([key, value]) => [key, !!(value as { c?: boolean }).c]),
+          )
 
-            this.progress.entryCompletedById = Object.fromEntries(
-              Object.entries(entries).map(([key, value]) => [key, !!(value as { c?: boolean }).c]),
-            )
-
-            this.seasonCache = {}
-            this.seasonCacheVersion++
-          },
-        )
-        .subscribe((status) => {
-          if (status === 'SUBSCRIBED') {
-            this.farmStatus = 'connected'
-          }
-
-          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-            this.farmStatus = 'reconnecting'
-          }
-        })
-
-      this.unsubscribeFarmChannel = () => {
-        supabase.removeChannel(channel)
-      }
+          this.seasonCache = {}
+          this.seasonCacheVersion++
+        },
+        onStatusChange: (status) => {
+          this.farmStatus = status
+        },
+      })
     },
 
     subscribeToSessions() {
       if (!this.currentFarmId) return
 
-      const farmId = this.currentFarmId
-
-      const channel = supabase
-        .channel(`farm-sessions-${farmId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'farm_sessions',
-            filter: `farm_id=eq.${farmId}`,
-          },
-          async () => {
-            const { data } = await supabase
-              .from('farm_sessions')
-              .select('user_id')
-              .eq('farm_id', farmId)
-
-            this.activeSessionUserIds = data?.map((r) => r.user_id) ?? []
-          },
-        )
-        .subscribe()
-
-      // Initial load
-      supabase
-        .from('farm_sessions')
-        .select('user_id')
-        .eq('farm_id', farmId)
-        .then(({ data }) => {
-          this.activeSessionUserIds = data?.map((r) => r.user_id) ?? []
-        })
-
-      this.unsubscribeSessionChannel = () => {
-        supabase.removeChannel(channel)
+      if (this.unsubscribeSessionChannel) {
+        this.unsubscribeSessionChannel()
+        this.unsubscribeSessionChannel = null
       }
+
+      this.unsubscribeSessionChannel = createFarmSessionsChannel(this.currentFarmId, {
+        onSessionUsersChange: (userIds) => {
+          this.activeSessionUserIds = userIds
+        },
+      })
     },
 
     // ─────────────────────────────
@@ -514,10 +465,7 @@ export const useBundlesStore = defineStore('bundles', {
     async heartbeatSeat() {
       if (!this.currentFarmId) return
 
-      // Reuses claim_seat to refresh last_seen_at
-      await supabase.rpc('claim_seat', {
-        input_farm_id: this.currentFarmId,
-      })
+      await claimFarmSeat(this.currentFarmId)
     },
 
     startHeartbeat() {
