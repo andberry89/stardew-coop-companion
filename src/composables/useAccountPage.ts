@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { getMyFarms, getFarmByCode, type Farm } from '@/lib/farms'
 import { getProfile, updateProfile } from '@/lib/profiles'
+import { logoutWithFarmDisconnect } from '@/lib/session'
 import { useBundlesStore } from '@/stores/bundles'
 import { useToast } from '@/composables/useToast'
 
@@ -89,11 +90,7 @@ export function useAccountPage() {
     logoutLoading.value = true
 
     try {
-      if (store.currentFarmId) {
-        await store.disconnectFromFarm()
-      }
-
-      await supabase.auth.signOut()
+      await logoutWithFarmDisconnect()
     } finally {
       logoutLoading.value = false
     }
