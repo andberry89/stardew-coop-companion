@@ -18,41 +18,19 @@
         :class="menuOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'"
       >
         <div class="px-4 pb-3 space-y-2">
-          <button
-            class="w-full text-left hover:bg-yellow-200 px-2 py-1 rounded"
-            @click="emit('account')"
-          >
-            Account Page
-          </button>
+          <button :class="menuButtonClass" @click="emit('account')">Account Page</button>
 
-          <button
-            class="w-full text-left hover:bg-yellow-200 px-2 py-1 rounded"
-            @click="emit('help')"
-          >
-            Help & Support
-          </button>
+          <button :class="menuButtonClass" @click="emit('help')">Help & Support</button>
 
-          <button
-            :disabled="exportLoading"
-            class="w-full text-left hover:bg-yellow-200 px-2 py-1 rounded disabled:opacity-50"
-            @click="emit('export')"
-          >
+          <button :disabled="exportLoading" :class="menuButtonClass" @click="emit('export')">
             Export State
           </button>
 
-          <button
-            :disabled="importLoading"
-            class="w-full text-left hover:bg-yellow-200 px-2 py-1 rounded disabled:opacity-50"
-            @click="emit('import')"
-          >
+          <button :disabled="importLoading" :class="menuButtonClass" @click="emit('import')">
             Import State
           </button>
 
-          <button
-            :disabled="logoutLoading"
-            class="w-full text-left text-red-700 hover:bg-red-100 px-2 py-1 rounded disabled:opacity-50"
-            @click="emit('logout')"
-          >
+          <button :disabled="logoutLoading" :class="dangerMenuButtonClass" @click="emit('logout')">
             Logout
           </button>
         </div>
@@ -78,6 +56,11 @@ const emit = defineEmits<{
   (e: 'import'): void
   (e: 'logout'): void
 }>()
+
+const menuButtonClass = 'w-full text-left px-2 py-1 rounded hover:bg-yellow-200 disabled:opacity-50'
+
+const dangerMenuButtonClass =
+  'w-full text-left px-2 py-1 rounded text-red-700 hover:bg-red-100 disabled:opacity-50'
 
 const menuOpen = ref(false)
 const menuRef = ref<HTMLElement | null>(null)

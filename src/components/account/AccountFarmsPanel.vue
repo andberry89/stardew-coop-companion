@@ -20,20 +20,17 @@
             Owner
           </span>
         </div>
+
         <div class="text-md text-gray-600">Code: {{ farm.code }}</div>
 
-        <button
-          :disabled="connecting"
-          class="border-menu grad-green py-2 px-4 font-stardew-thin text-green-950 stardew-btn"
-          @click="emit('connect', farm)"
-        >
+        <button :disabled="connecting" :class="connectButtonClass" @click="emit('connect', farm)">
           Connect
         </button>
 
         <div v-if="isEditing" class="flex gap-2 pt-2">
           <button
             :disabled="leavingFarmId === farm.id"
-            class="border-menu grad-amber py-2 px-3 font-stardew-thin text-orange-950 stardew-btn text-xs disabled:opacity-50"
+            :class="leaveButtonClass"
             @click="emit('leave', farm.id)"
           >
             Leave
@@ -42,7 +39,7 @@
           <button
             v-if="farm.created_by === currentUserId"
             :disabled="deleteFarmLoading"
-            class="border-menu grad-red py-2 px-3 font-stardew-thin text-red-950 stardew-btn text-xs disabled:opacity-50"
+            :class="deleteButtonClass"
             @click="emit('delete', farm.id)"
           >
             Delete
@@ -70,4 +67,14 @@ const emit = defineEmits<{
   (e: 'leave', farmId: string): void
   (e: 'delete', farmId: string): void
 }>()
+
+const actionButtonClass =
+  'border-menu py-2 px-3 font-stardew-thin stardew-btn text-xs disabled:opacity-50'
+
+const leaveButtonClass = `${actionButtonClass} grad-amber text-orange-950`
+
+const deleteButtonClass = `${actionButtonClass} grad-red text-red-950`
+
+const connectButtonClass =
+  'border-menu grad-green py-2 px-4 font-stardew-thin text-green-950 stardew-btn'
 </script>
