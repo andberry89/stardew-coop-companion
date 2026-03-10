@@ -13,6 +13,15 @@
         </button>
 
         <button
+          v-if="isEditing"
+          :disabled="deleteAccountLoading"
+          class="border-menu grad-red py-2 px-4 font-stardew-thin text-red-950 stardew-btn disabled:opacity-50"
+          @click="emit('deleteAccount')"
+        >
+          Delete Account
+        </button>
+
+        <button
           :disabled="logoutLoading"
           class="border-menu grad-red py-2 px-4 font-stardew-thin text-red-950 stardew-btn disabled:opacity-50"
           @click="emit('logout')"
@@ -98,11 +107,13 @@ defineProps<{
   avatarOptions: string[]
   logoutLoading: boolean
   saveProfileLoading: boolean
+  deleteAccountLoading: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'startEdit'): void
   (e: 'logout'): void
+  (e: 'deleteAccount'): void
   (e: 'save'): void
   (e: 'cancel'): void
   (e: 'update:displayName', value: string): void

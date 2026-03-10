@@ -9,12 +9,14 @@
       :avatarOptions="avatarOptions"
       :logoutLoading="logoutLoading"
       :saveProfileLoading="saveProfileLoading"
+      :deleteAccountLoading="deleteAccountLoading"
       @startEdit="isEditing = true"
       @logout="logout"
       @save="saveProfile"
       @cancel="cancelEdit"
       @update:displayName="displayName = $event"
       @update:avatar="avatar = $event"
+      @deleteAccount="deleteAccountPending = true"
     />
 
     <AccountFarmsPanel
@@ -46,6 +48,13 @@
       @close="farmPendingDelete = null"
       @confirm="confirmDelete"
     />
+
+    <DeleteAccountModal
+      v-if="deleteAccountPending"
+      :loading="deleteAccountLoading"
+      @close="deleteAccountPending = false"
+      @confirm="confirmDeleteAccount"
+    />
   </div>
 </template>
 
@@ -55,7 +64,11 @@ import AccountProfilePanel from '@/components/account/AccountProfilePanel.vue'
 import AccountFarmsPanel from '@/components/account/AccountFarmsPanel.vue'
 import AccountManageFarmsPanel from '@/components/account/AccountManageFarmsPanel.vue'
 import DeleteFarmModal from '@/components/account/DeleteFarmModal.vue'
+import DeleteAccountModal from '@/components/account/DeleteAccountModal.vue'
 import { useAccountPage } from '@/composables/useAccountPage'
+import { useRoute, useRouter } from 'vue-router'
+import { useToast } from '@/composables/useToast'
+import { onMounted } from 'vue'
 
 const {
   email,
@@ -67,6 +80,8 @@ const {
   joinCode,
   currentUserId,
   farmPendingDelete,
+  deleteAccountPending,
+  deleteAccountLoading,
   logoutLoading,
   saveProfileLoading,
   createFarmLoading,
@@ -83,5 +98,21 @@ const {
   joinFarm,
   leaveFarm,
   confirmDelete,
+  confirmDeleteAccount,
 } = useAccountPage()
+
+const route = useRoute()
+const router = useRouter()
+const toast = useToast()
+
+onMounted(() => {
+  if (route.query.passwordReset === 'success') {
+    toast.success('Password updated successfully.')
+
+    const query = { ...route.query }
+    delete query.passwordReset
+
+    router.replace({ query })
+  }
+})
 </script>
