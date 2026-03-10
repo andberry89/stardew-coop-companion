@@ -20,8 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ItemType, Season, ViewStatus } from '@/types'
-import type { FilterState } from '@/types/filters'
+import type { FilterState, ItemType, RoomStatus, Season } from '@/types'
 import { FILTER_GROUPS } from '@/constants/filterConfig'
 import FilterButton from './FilterButton.vue'
 

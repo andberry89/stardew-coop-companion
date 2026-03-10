@@ -7,7 +7,7 @@ export type FlashMessage = {
   message: string
 }
 
-function getSingleQueryValue(value: LocationQuery[string]): string | null {
+function getSingleQueryValue(value: LocationQuery[string] | undefined): string | null {
   if (typeof value === 'string' && value.trim()) {
     return value
   }

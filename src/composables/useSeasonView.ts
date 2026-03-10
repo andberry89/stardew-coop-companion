@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue'
+import { computed, type Ref } from 'vue'
 import { useBundlesStore } from '@/stores/bundles'
 import type { Season, ItemType, SeasonDisplayRow } from '@/types'
 import { splitEntryIntoRows } from '@/utils/seasonTransform'

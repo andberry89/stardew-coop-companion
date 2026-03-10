@@ -10,7 +10,7 @@
 
         <img
           v-if="row.requirement.minQuality"
-          :src="qualityIconFor(row.requirement.minQuality)"
+          :src="qualityIconFor(row.requirement.minQuality) || undefined"
           class="absolute bottom-0 left-0 size-8"
         />
 

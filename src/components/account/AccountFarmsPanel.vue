@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Farm } from '@/lib/farms'
+import type { Farm } from '@/types'
 
 defineProps<{
   farms: Farm[]

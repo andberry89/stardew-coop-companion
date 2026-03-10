@@ -56,10 +56,7 @@ onMounted(() => {
         return
       }
 
-      const isLoggedOut =
-        event === 'SIGNED_OUT' ||
-        event === 'TOKEN_REFRESH_FAILED' ||
-        (event === 'INITIAL_SESSION' && !session)
+      const isLoggedOut = event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)
 
       if (isLoggedOut) {
         await goToLoggedOutState()
