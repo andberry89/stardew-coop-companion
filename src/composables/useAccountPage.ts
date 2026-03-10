@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { getMyFarms, getFarmByCode, type Farm } from '@/lib/farms'
 import { getProfile, updateProfile } from '@/lib/profiles'
+import { getErrorMessage, logError } from '@/lib/errors'
 import { logoutWithFarmDisconnect } from '@/lib/session'
 import { useBundlesStore } from '@/stores/bundles'
 import { useToast } from '@/composables/useToast'
@@ -91,6 +92,9 @@ export function useAccountPage() {
 
     try {
       await logoutWithFarmDisconnect()
+    } catch (error) {
+      logError('logout failed', error)
+      toast.error(getErrorMessage(error, 'Logout failed'))
     } finally {
       logoutLoading.value = false
     }
@@ -114,12 +118,16 @@ export function useAccountPage() {
       })
 
       if (error) {
+        logError('saveProfile failed', error)
         toast.error('Failed to save profile')
         return
       }
 
       isEditing.value = false
       toast.success('Profile updated')
+    } catch (error) {
+      logError('saveProfile failed', error)
+      toast.error(getErrorMessage(error, 'Failed to save profile'))
     } finally {
       saveProfileLoading.value = false
     }
@@ -164,20 +172,32 @@ export function useAccountPage() {
         .single()
 
       if (error || !farm) {
+        logError('createFarm insert failed', error)
         farmError.value = 'Failed to create farm.'
         toast.error('Failed to create farm')
         return
       }
 
-      await supabase.from('farm_members').insert({
+      const { error: memberError } = await supabase.from('farm_members').insert({
         farm_id: farm.id,
         user_id: data.user.id,
         role: 'admin',
       })
 
+      if (memberError) {
+        logError('createFarm membership insert failed', memberError)
+        farmError.value = 'Failed to create farm.'
+        toast.error('Failed to create farm')
+        return
+      }
+
       farms.value = await getMyFarms()
       newFarmName.value = ''
       toast.success('Farm created')
+    } catch (error) {
+      logError('createFarm failed', error)
+      farmError.value = 'Failed to create farm.'
+      toast.error(getErrorMessage(error, 'Failed to create farm'))
     } finally {
       createFarmLoading.value = false
     }
@@ -230,6 +250,7 @@ export function useAccountPage() {
       })
 
       if (error) {
+        logError('joinFarm insert failed', error)
         toast.error('Failed to join farm')
         return
       }
@@ -237,9 +258,9 @@ export function useAccountPage() {
       farms.value = await getMyFarms()
       joinCode.value = ''
       toast.success('Joined farm')
-    } catch (err) {
-      console.error('joinFarm error:', err)
-      toast.error('Unable to look up farm code')
+    } catch (error) {
+      logError('joinFarm failed', error)
+      toast.error(getErrorMessage(error, 'Unable to join farm'))
     } finally {
       joinFarmLoading.value = false
     }
@@ -258,6 +279,7 @@ export function useAccountPage() {
       })
 
       if (error) {
+        logError('leaveFarm failed', error)
         toast.error('Failed to leave farm')
         return
       }
@@ -269,6 +291,9 @@ export function useAccountPage() {
 
       farms.value = await getMyFarms()
       toast.success('Left farm')
+    } catch (error) {
+      logError('leaveFarm failed', error)
+      toast.error(getErrorMessage(error, 'Failed to leave farm'))
     } finally {
       leavingFarmId.value = null
     }
@@ -282,39 +307,47 @@ export function useAccountPage() {
 
     if (farm.created_by !== currentUserId.value) return
 
-    if (store.currentFarmId === farmId) {
-      await store.disconnectFromFarm()
+    try {
+      if (store.currentFarmId === farmId) {
+        await store.disconnectFromFarm()
+      }
+
+      const { error: memberError } = await supabase.from('farm_members').delete().match({
+        farm_id: farmId,
+        user_id: currentUserId.value,
+      })
+
+      if (memberError) {
+        logError('deleteFarm membership delete failed', memberError)
+        toast.error('Failed to delete farm')
+        return
+      }
+
+      const { error: sessionError } = await supabase
+        .from('farm_sessions')
+        .delete()
+        .eq('farm_id', farmId)
+
+      if (sessionError) {
+        logError('deleteFarm session delete failed', sessionError)
+        toast.error('Failed to delete farm')
+        return
+      }
+
+      const { error: farmDeleteError } = await supabase.from('farms').delete().eq('id', farmId)
+
+      if (farmDeleteError) {
+        logError('deleteFarm farm delete failed', farmDeleteError)
+        toast.error('Failed to delete farm')
+        return
+      }
+
+      farms.value = await getMyFarms()
+      toast.success('Farm deleted')
+    } catch (error) {
+      logError('deleteFarm failed', error)
+      toast.error(getErrorMessage(error, 'Failed to delete farm'))
     }
-
-    const { error: memberError } = await supabase.from('farm_members').delete().match({
-      farm_id: farmId,
-      user_id: currentUserId.value,
-    })
-
-    if (memberError) {
-      toast.error('Failed to delete farm')
-      return
-    }
-
-    const { error: sessionError } = await supabase
-      .from('farm_sessions')
-      .delete()
-      .eq('farm_id', farmId)
-
-    if (sessionError) {
-      toast.error('Failed to delete farm')
-      return
-    }
-
-    const { error: farmDeleteError } = await supabase.from('farms').delete().eq('id', farmId)
-
-    if (farmDeleteError) {
-      toast.error('Failed to delete farm')
-      return
-    }
-
-    farms.value = await getMyFarms()
-    toast.success('Farm deleted')
   }
 
   async function confirmDelete() {
