@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import LoginPage from '@/pages/LoginPage.vue'
 import AccountPage from '@/pages/AccountPage.vue'
 import FarmPage from '@/pages/FarmPage.vue'
+import HelpPage from '@/pages/HelpPage.vue'
 
 async function requireUser() {
   const { data } = await supabase.auth.getUser()
@@ -68,6 +69,11 @@ const router = createRouter({
 
         return true
       },
+    },
+    {
+      path: '/help',
+      name: 'help',
+      component: HelpPage,
     },
     {
       path: '/',

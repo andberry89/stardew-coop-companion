@@ -26,6 +26,13 @@
           </button>
 
           <button
+            class="w-full text-left hover:bg-yellow-200 px-2 py-1 rounded"
+            @click="emit('help')"
+          >
+            Help & Support
+          </button>
+
+          <button
             :disabled="exportLoading"
             class="w-full text-left hover:bg-yellow-200 px-2 py-1 rounded disabled:opacity-50"
             @click="emit('export')"
@@ -66,6 +73,7 @@ defineProps<{
 
 const emit = defineEmits<{
   (e: 'account'): void
+  (e: 'help'): void
   (e: 'export'): void
   (e: 'import'): void
   (e: 'logout'): void
