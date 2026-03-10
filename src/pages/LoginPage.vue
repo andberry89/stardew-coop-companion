@@ -194,7 +194,7 @@ async function handleSignUp() {
   if (error) {
     message.value = error.message
   } else {
-    message.value = 'Account created. Check your email if confirmation is required.'
+    message.value = 'Check your email to verify your account.'
   }
 
   loading.value = false
