@@ -39,16 +39,26 @@ function buildBundleItems({
   itemsById,
   entryCompletedById,
 }: BuildBundleItemsInput): BundleItem[] {
-  return entryKeys.map((entryKey) => {
-    const entry = entriesByKey[entryKey]
+  return entryKeys
+    .map((entryKey) => {
+      const entry = entriesByKey[entryKey]
+      if (!entry) {
+        return null
+      }
 
-    return {
-      entryKey,
-      entry,
-      completed: !!entryCompletedById[entryKey],
-      item: itemsById[entry.itemId],
-    }
-  })
+      const item = itemsById[entry.itemId]
+      if (!item) {
+        return null
+      }
+
+      return {
+        entryKey,
+        entry,
+        completed: !!entryCompletedById[entryKey],
+        item,
+      }
+    })
+    .filter((item): item is BundleItem => item !== null)
 }
 
 export function buildBundlesView({

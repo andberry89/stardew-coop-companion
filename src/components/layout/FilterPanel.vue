@@ -9,7 +9,7 @@
 
       <FilterButton
         v-for="option in group.options"
-        :key="option.key"
+        :key="`${group.model}:${option.key ?? 'all'}`"
         :label="option.label"
         :icon="option.icon"
         :active="props.filters[group.model] === option.key"

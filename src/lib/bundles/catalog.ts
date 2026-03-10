@@ -56,12 +56,16 @@ export function buildCatalogState(payload: CatalogPayload): CatalogState {
     ;(entryKeysByBundleId[entry.bundleId] ??= []).push(key)
 
     bundleIdsByItemId[entry.itemId] ??= []
-    if (!bundleIdsByItemId[entry.itemId].includes(entry.bundleId)) {
-      bundleIdsByItemId[entry.itemId].push(entry.bundleId)
+    const itemBundleIds = bundleIdsByItemId[entry.itemId]
+    if (itemBundleIds && !itemBundleIds.includes(entry.bundleId)) {
+      itemBundleIds.push(entry.bundleId)
     }
 
     entryKeysByItemId[entry.itemId] ??= []
-    entryKeysByItemId[entry.itemId].push(key)
+    const itemEntryKeys = entryKeysByItemId[entry.itemId]
+    if (itemEntryKeys) {
+      itemEntryKeys.push(key)
+    }
   }
 
   for (const roomId in bundleIdsByRoomId) {
@@ -78,11 +82,17 @@ export function buildCatalogState(payload: CatalogPayload): CatalogState {
   }
 
   for (const bundleId in entryKeysByBundleId) {
-    entryKeysByBundleId[bundleId].sort()
+    const bundleEntryKeys = entryKeysByBundleId[bundleId]
+    if (bundleEntryKeys) {
+      bundleEntryKeys.sort()
+    }
   }
 
   for (const itemId in bundleIdsByItemId) {
-    bundleIdsByItemId[itemId].sort()
+    const itemBundleIds = bundleIdsByItemId[itemId]
+    if (itemBundleIds) {
+      itemBundleIds.sort()
+    }
   }
 
   return {

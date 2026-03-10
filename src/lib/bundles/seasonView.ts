@@ -27,23 +27,43 @@ export function buildSeasonView({
   return itemIds
     .map((itemId) => {
       const item = itemsById[itemId]
-      if (!item) return null
+      if (!item) {
+        return null
+      }
 
       const entryKeys = entryKeysByItemId[itemId] ?? []
 
-      const usages = entryKeys.map((entryKey) => {
-        const entry = entriesByKey[entryKey]
-        const bundle = bundlesById[entry.bundleId]
+      const usages = entryKeys
+        .map((entryKey) => {
+          const entry = entriesByKey[entryKey]
+          if (!entry) {
+            return null
+          }
 
-        return {
-          entryKey,
-          bundleId: entry.bundleId,
-          bundleName: bundle?.name ?? entry.bundleId,
-          completed: !!progress.entryCompletedById[entryKey],
-          requiredPerSubmission: entry.requiredPerSubmission ?? 1,
-          minQuality: entry.minQuality,
-        }
-      })
+          const bundle = bundlesById[entry.bundleId]
+
+          return {
+            entryKey,
+            bundleId: entry.bundleId,
+            bundleName: bundle?.name ?? entry.bundleId,
+            completed:
+              !!progress.entryCompletedById[entryKey as keyof typeof progress.entryCompletedById],
+            requiredPerSubmission: entry.requiredPerSubmission ?? 1,
+            minQuality: entry.minQuality,
+          }
+        })
+        .filter(
+          (
+            usage,
+          ): usage is {
+            entryKey: string
+            bundleId: string
+            bundleName: string
+            completed: boolean
+            requiredPerSubmission: number
+            minQuality?: string
+          } => usage !== null,
+        )
 
       return {
         item,
@@ -51,6 +71,6 @@ export function buildSeasonView({
         usages,
       }
     })
-    .filter((entry): entry is SeasonItemEntry => !!entry)
+    .filter((entry): entry is SeasonItemEntry => entry !== null)
     .sort((a, b) => a.item.name.localeCompare(b.item.name))
 }
