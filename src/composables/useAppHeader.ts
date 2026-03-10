@@ -62,6 +62,10 @@ export function useAppHeader() {
     await disconnect()
   }
 
+  async function openHelp() {
+    await router.push('/help')
+  }
+
   // ─────────────────────────────
   // Import / Export Actions
   // ─────────────────────────────
@@ -187,6 +191,7 @@ export function useAppHeader() {
     seatCount,
     handleLeaveFarm,
     logout,
+    openHelp,
     openExport,
     openImport,
     runImport,

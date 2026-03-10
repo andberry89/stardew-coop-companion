@@ -55,6 +55,14 @@
       @close="deleteAccountPending = false"
       @confirm="confirmDeleteAccount"
     />
+    <div class="text-center">
+      <RouterLink
+        to="/help"
+        class="text-sm font-quicksand text-amber-50 underline underline-offset-2 hover:opacity-80"
+      >
+        Help & Support
+      </RouterLink>
+    </div>
   </div>
 </template>
 
@@ -67,6 +75,7 @@ import DeleteFarmModal from '@/components/account/DeleteFarmModal.vue'
 import DeleteAccountModal from '@/components/account/DeleteAccountModal.vue'
 import { useAccountPage } from '@/composables/useAccountPage'
 import { useRouteFlash } from '@/composables/useRouteFlash'
+import { RouterLink } from 'vue-router'
 
 const {
   email,

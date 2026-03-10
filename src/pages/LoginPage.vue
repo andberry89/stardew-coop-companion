@@ -129,6 +129,14 @@
           {{ message }}
         </p>
       </div>
+      <div class="mt-4 text-center">
+        <RouterLink
+          to="/help"
+          class="text-sm font-quicksand text-amber-50 underline underline-offset-2 hover:opacity-80"
+        >
+          Help & Support
+        </RouterLink>
+      </div>
     </div>
   </div>
 </template>
