@@ -7,6 +7,11 @@ import {
   removeFarmSession,
 } from '@/lib/bundles/connection'
 import { buildCatalogState, type CatalogPayload } from '@/lib/bundles/catalog'
+import {
+  getBundleProgress,
+  getCompletedItemsForBundle,
+  getRoomProgress,
+} from '@/lib/bundles/progress'
 import { buildStateCode, parseStateCode } from '@/lib/bundles/stateCode'
 import { supabase } from '@/lib/supabase'
 
@@ -79,49 +84,35 @@ export const useBundlesStore = defineStore('bundles', {
 
     completedItemsForBundle: (s) => {
       return (bundleId: string) => {
-        const keys = s.entryKeysByBundleId[bundleId] ?? []
-        return keys
-          .filter((entryKey) => !!s.progress.entryCompletedById[entryKey])
-          .map((entryKey) => {
-            const entry = s.entriesByKey[entryKey]
-            return s.itemsById[entry.itemId] ?? null
-          })
-          .filter((item) => item !== null)
+        const entryKeys = s.entryKeysByBundleId[bundleId] ?? []
+
+        return getCompletedItemsForBundle(
+          entryKeys,
+          s.progress.entryCompletedById,
+          s.entriesByKey,
+          s.itemsById,
+        )
       }
     },
 
     bundleProgress: (s) => {
       return (bundleId: string) => {
         const entryKeys = s.entryKeysByBundleId[bundleId] ?? []
-        const completed = entryKeys.reduce(
-          (acc, k) => acc + (s.progress.entryCompletedById[k] ? 1 : 0),
-          0,
-        )
-        const required = s.bundlesById[bundleId]?.requiredCount ?? 0
-        return { completed, required, isComplete: completed >= required }
+        const requiredCount = s.bundlesById[bundleId]?.requiredCount ?? 0
+
+        return getBundleProgress(entryKeys, s.progress.entryCompletedById, requiredCount)
       }
     },
 
     roomProgress: (s) => {
       return (roomId: RoomId) => {
-        const bundleIds = s.bundleIdsByRoomId[roomId] ?? []
-        const totalBundles = bundleIds.length
-
-        const completedBundles = bundleIds.reduce((acc, bundleId) => {
-          const entryKeys = s.entryKeysByBundleId[bundleId] ?? []
-          const completedEntries = entryKeys.reduce(
-            (a, k) => a + (s.progress.entryCompletedById[k] ? 1 : 0),
-            0,
-          )
-          const required = s.bundlesById[bundleId]?.requiredCount ?? 0
-          return acc + (completedEntries >= required ? 1 : 0)
-        }, 0)
-
-        return {
-          completedBundles,
-          totalBundles,
-          isComplete: totalBundles > 0 && completedBundles === totalBundles,
-        }
+        return getRoomProgress(
+          roomId,
+          s.bundleIdsByRoomId,
+          s.entryKeysByBundleId,
+          s.progress.entryCompletedById,
+          s.bundlesById,
+        )
       }
     },
 
