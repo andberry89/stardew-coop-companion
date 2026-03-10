@@ -1,8 +1,12 @@
 <template>
   <BaseModal @close="emit('close')">
-    <h2 class="text-xl font-stardew-bold text-orange-950 mb-2">Delete Account</h2>
+    <h2 class="text-xl font-stardew-bold text-orange-950 mb-3">Delete Account</h2>
 
-    <p class="text-sm text-orange-950">Account deletion is not available yet.</p>
+    <p class="text-md text-orange-950">
+      This will permanently delete your account and remove the farms you own.
+    </p>
+
+    <p class="text-md text-orange-950">This cannot be undone.</p>
 
     <div class="flex justify-end gap-2 mt-3">
       <button
