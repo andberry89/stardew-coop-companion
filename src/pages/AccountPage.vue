@@ -66,10 +66,7 @@ import AccountManageFarmsPanel from '@/components/account/AccountManageFarmsPane
 import DeleteFarmModal from '@/components/account/DeleteFarmModal.vue'
 import DeleteAccountModal from '@/components/account/DeleteAccountModal.vue'
 import { useAccountPage } from '@/composables/useAccountPage'
-import { useRoute, useRouter } from 'vue-router'
-import { useToast } from '@/composables/useToast'
-import { onMounted } from 'vue'
-import { clearFlashQuery, readFlashQuery } from '@/lib/flash'
+import { useRouteFlash } from '@/composables/useRouteFlash'
 
 const {
   email,
@@ -102,23 +99,5 @@ const {
   confirmDeleteAccount,
 } = useAccountPage()
 
-const route = useRoute()
-const router = useRouter()
-const toast = useToast()
-
-onMounted(() => {
-  const flash = readFlashQuery(route.query)
-
-  if (!flash) {
-    return
-  }
-
-  if (flash.type === 'error') {
-    toast.error(flash.message)
-  } else {
-    toast.success(flash.message)
-  }
-
-  router.replace({ query: clearFlashQuery(route.query) })
-})
+useRouteFlash()
 </script>
