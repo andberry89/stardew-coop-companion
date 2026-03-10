@@ -2,6 +2,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { getProfileAvatar, getProfileDisplayName } from '@/lib/profiles'
+import { disconnectCurrentFarmIfNeeded, logoutWithFarmDisconnect } from '@/lib/session'
 import { useBundlesStore } from '@/stores/bundles'
 import { useToast } from '@/composables/useToast'
 
@@ -25,7 +26,7 @@ export function useAppHeader() {
   const seatCount = computed(() => store.activeSessionUserIds.length)
 
   async function disconnect() {
-    await store.disconnectFromFarm()
+    await disconnectCurrentFarmIfNeeded()
     await router.push('/account')
   }
 
@@ -35,11 +36,7 @@ export function useAppHeader() {
     logoutLoading.value = true
 
     try {
-      if (store.currentFarmId) {
-        await store.disconnectFromFarm()
-      }
-
-      await supabase.auth.signOut()
+      await logoutWithFarmDisconnect()
     } finally {
       logoutLoading.value = false
     }
