@@ -24,33 +24,42 @@ export function buildSeasonView({
       ? (itemIdsBySeason.any ?? [])
       : [...(itemIdsBySeason[season] ?? []), ...(itemIdsBySeason.any ?? [])]
 
-  return itemIds
-    .map((itemId) => {
-      const item = itemsById[itemId]
-      if (!item) return null
+  const result: SeasonItemEntry[] = []
 
-      const entryKeys = entryKeysByItemId[itemId] ?? []
+  for (const itemId of itemIds) {
+    const item = itemsById[itemId]
+    if (!item) {
+      continue
+    }
 
-      const usages = entryKeys.map((entryKey) => {
-        const entry = entriesByKey[entryKey]
-        const bundle = bundlesById[entry.bundleId]
+    const entryKeys = entryKeysByItemId[itemId] ?? []
+    const usages: SeasonItemEntry['usages'] = []
 
-        return {
-          entryKey,
-          bundleId: entry.bundleId,
-          bundleName: bundle?.name ?? entry.bundleId,
-          completed: !!progress.entryCompletedById[entryKey],
-          requiredPerSubmission: entry.requiredPerSubmission ?? 1,
-          minQuality: entry.minQuality,
-        }
-      })
-
-      return {
-        item,
-        inventory: progress.inventoryByItemId[itemId] ?? 0,
-        usages,
+    for (const entryKey of entryKeys) {
+      const entry = entriesByKey[entryKey]
+      if (!entry) {
+        continue
       }
+
+      const bundle = bundlesById[entry.bundleId]
+
+      usages.push({
+        entryKey,
+        bundleId: entry.bundleId,
+        bundleName: bundle?.name ?? entry.bundleId,
+        completed:
+          !!progress.entryCompletedById[entryKey as keyof typeof progress.entryCompletedById],
+        requiredPerSubmission: entry.requiredPerSubmission ?? 1,
+        minQuality: entry.minQuality,
+      })
+    }
+
+    result.push({
+      item,
+      inventory: progress.inventoryByItemId[itemId] ?? 0,
+      usages,
     })
-    .filter((entry): entry is SeasonItemEntry => !!entry)
-    .sort((a, b) => a.item.name.localeCompare(b.item.name))
+  }
+
+  return result.sort((a, b) => a.item.name.localeCompare(b.item.name))
 }

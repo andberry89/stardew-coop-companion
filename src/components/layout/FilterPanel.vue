@@ -9,21 +9,22 @@
 
       <FilterButton
         v-for="option in group.options"
-        :key="option.key"
+        :key="`${group.model}:${option.key ?? 'all'}`"
         :label="option.label"
         :icon="option.icon"
         :active="props.filters[group.model] === option.key"
-        @click="emit(`update:${group.model}`, option.key)"
+        @click="updateFilter(group.model, option.key)"
       />
     </div>
   </aside>
 </template>
 
 <script setup lang="ts">
-import type { ItemType, Season, ViewStatus } from '@/types'
-import type { FilterState } from '@/types/filters'
+import type { FilterState, ItemType, RoomStatus, Season, ViewStatus } from '@/types'
 import { FILTER_GROUPS } from '@/constants/filterConfig'
 import FilterButton from './FilterButton.vue'
+
+type FilterModelKey = keyof FilterState
 
 const props = defineProps<{
   view: ViewStatus
@@ -36,4 +37,21 @@ const emit = defineEmits<{
   (e: 'update:type', value: ItemType | null): void
   (e: 'update:roomStatus', value: RoomStatus | null): void
 }>()
+
+function updateFilter(model: FilterModelKey, value: FilterState[FilterModelKey]) {
+  switch (model) {
+    case 'bundleSeason':
+      emit('update:bundleSeason', value as Season | null)
+      break
+    case 'seasonViewSeason':
+      emit('update:seasonViewSeason', value as Season | null)
+      break
+    case 'type':
+      emit('update:type', value as ItemType | null)
+      break
+    case 'roomStatus':
+      emit('update:roomStatus', value as RoomStatus | null)
+      break
+  }
+}
 </script>

@@ -24,11 +24,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import SeasonTypeSection from './SeasonTypeSection.vue'
-import type { ItemType, Season, SeasonItemEntry } from '@/types'
+import type { ItemType, Season, SeasonDisplayRow } from '@/types'
 
 const props = defineProps<{
   seasonKey: Season
-  typeGroups: Partial<Record<ItemType, SeasonItemEntry[]>>
+  typeGroups: Partial<Record<ItemType, SeasonDisplayRow[]>>
   typeOrder: ItemType[]
 }>()
 

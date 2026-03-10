@@ -53,7 +53,7 @@
       >
         <img
           v-if="completedItems[i - 1]"
-          :src="`/images/items/${completedItems[i - 1].id}.png`"
+          :src="`/images/items/${completedItems[i - 1]!.id}.png`"
           class="object-contain size-8"
           alt=""
         />

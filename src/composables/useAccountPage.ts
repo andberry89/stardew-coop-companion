@@ -2,13 +2,14 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { buildFlashQuery } from '@/lib/flash'
 import { supabase } from '@/lib/supabase'
-import { getMyFarms, getFarmByCode, type Farm } from '@/lib/farms'
+import { getMyFarms, getFarmByCode } from '@/lib/farms'
 import { getProfile, updateProfile } from '@/lib/profiles'
 import { getErrorMessage, logError } from '@/lib/errors'
 import { logoutWithFarmDisconnect } from '@/lib/session'
 import { deleteAccount as deleteAccountRequest } from '@/lib/auth'
 import { useBundlesStore } from '@/stores/bundles'
 import { useToast } from '@/composables/useToast'
+import type { Farm } from '@/types'
 
 export function useAccountPage() {
   const router = useRouter()

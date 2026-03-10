@@ -1,6 +1,10 @@
 import { supabase } from '@/lib/supabase'
 import type { Farm } from '@/types'
 
+type FarmMemberRow = {
+  farms: Farm[] | null
+}
+
 export async function getMyFarms(): Promise<Farm[]> {
   const { data, error } = await supabase.from('farm_members').select(`
       farms (
@@ -14,7 +18,9 @@ export async function getMyFarms(): Promise<Farm[]> {
 
   if (error) throw error
 
-  return (data ?? []).map((row) => row.farms).filter((farm): farm is Farm => !!farm)
+  const rows = (data ?? []) as FarmMemberRow[]
+
+  return rows.flatMap((row) => row.farms ?? [])
 }
 
 export async function getFarmByCode(code: string) {

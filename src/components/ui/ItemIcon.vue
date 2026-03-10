@@ -5,14 +5,14 @@
     <!-- Quality -->
     <img
       v-if="minQuality"
-      :src="qualityIconFor(minQuality)"
+      :src="qualityIconFor(minQuality) || undefined"
       alt="Quality"
       class="absolute bottom-0 left-0 size-8"
     />
 
     <!-- Quantity -->
     <div
-      v-if="requiredPerSubmission > 1"
+      v-if="(requiredPerSubmission ?? 1) > 1"
       class="absolute bottom-0 right-0 bg-[rgba(0,0,0,0.7)] text-white text-xs font-bold px-0.5 rounded"
     >
       x{{ requiredPerSubmission }}
