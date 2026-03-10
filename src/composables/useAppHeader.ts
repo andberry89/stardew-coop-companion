@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { getProfileAvatar, getProfileDisplayName } from '@/lib/profiles'
 import { getStateCodeErrorMessage } from '@/lib/bundles/stateCode'
+import { getErrorMessage, logError } from '@/lib/errors'
 import { disconnectCurrentFarmIfNeeded, logoutWithFarmDisconnect } from '@/lib/session'
 import { useBundlesStore } from '@/stores/bundles'
 import { useToast } from '@/composables/useToast'
@@ -27,8 +28,13 @@ export function useAppHeader() {
   const seatCount = computed(() => store.activeSessionUserIds.length)
 
   async function disconnect() {
-    await disconnectCurrentFarmIfNeeded()
-    await router.push('/account')
+    try {
+      await disconnectCurrentFarmIfNeeded()
+      await router.push('/account')
+    } catch (error) {
+      logError('disconnect failed', error)
+      toast.error(getErrorMessage(error, 'Failed to leave farm'))
+    }
   }
 
   async function logout() {
@@ -38,6 +44,9 @@ export function useAppHeader() {
 
     try {
       await logoutWithFarmDisconnect()
+    } catch (error) {
+      logError('logout failed', error)
+      toast.error(getErrorMessage(error, 'Logout failed'))
     } finally {
       logoutLoading.value = false
     }
@@ -77,8 +86,9 @@ export function useAppHeader() {
       toast.success('State imported')
       modalType.value = null
       importInput.value = ''
-    } catch (err) {
-      toast.error(getStateCodeErrorMessage(err))
+    } catch (error) {
+      logError('runImport failed', error)
+      toast.error(getStateCodeErrorMessage(error))
     } finally {
       importLoading.value = false
     }
