@@ -143,6 +143,7 @@ import {
   updatePassword,
 } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
+import { buildFlashQuery } from '@/lib/flash'
 
 const route = useRoute()
 const router = useRouter()
@@ -271,6 +272,15 @@ async function handleUpdatePassword() {
     return
   }
 
-  await router.replace('/account?passwordReset=success')
+  await router.replace({
+    path: '/account',
+    query: buildFlashQuery(
+      {},
+      {
+        type: 'success',
+        message: 'Password updated successfully.',
+      },
+    ),
+  })
 }
 </script>
