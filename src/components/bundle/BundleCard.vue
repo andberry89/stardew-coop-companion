@@ -52,8 +52,8 @@
         class="slot size-12 flex justify-center items-center"
       >
         <img
-          v-if="completedItems[i - 1]"
-          :src="completedItems[i - 1] ? `/images/items/${completedItems[i - 1].id}.png` : undefined"
+          v-if="completedItems[i - 1] as completedItem"
+          :src="`/images/items/${completedItem.id}.png`"
           class="object-contain size-8"
           alt=""
         />

@@ -24,53 +24,42 @@ export function buildSeasonView({
       ? (itemIdsBySeason.any ?? [])
       : [...(itemIdsBySeason[season] ?? []), ...(itemIdsBySeason.any ?? [])]
 
-  return itemIds
-    .map((itemId) => {
-      const item = itemsById[itemId]
-      if (!item) {
-        return null
+  const result: SeasonItemEntry[] = []
+
+  for (const itemId of itemIds) {
+    const item = itemsById[itemId]
+    if (!item) {
+      continue
+    }
+
+    const entryKeys = entryKeysByItemId[itemId] ?? []
+    const usages: SeasonItemEntry['usages'] = []
+
+    for (const entryKey of entryKeys) {
+      const entry = entriesByKey[entryKey]
+      if (!entry) {
+        continue
       }
 
-      const entryKeys = entryKeysByItemId[itemId] ?? []
+      const bundle = bundlesById[entry.bundleId]
 
-      const usages = entryKeys
-        .map((entryKey) => {
-          const entry = entriesByKey[entryKey]
-          if (!entry) {
-            return null
-          }
+      usages.push({
+        entryKey,
+        bundleId: entry.bundleId,
+        bundleName: bundle?.name ?? entry.bundleId,
+        completed:
+          !!progress.entryCompletedById[entryKey as keyof typeof progress.entryCompletedById],
+        requiredPerSubmission: entry.requiredPerSubmission ?? 1,
+        minQuality: entry.minQuality,
+      })
+    }
 
-          const bundle = bundlesById[entry.bundleId]
-
-          return {
-            entryKey,
-            bundleId: entry.bundleId,
-            bundleName: bundle?.name ?? entry.bundleId,
-            completed:
-              !!progress.entryCompletedById[entryKey as keyof typeof progress.entryCompletedById],
-            requiredPerSubmission: entry.requiredPerSubmission ?? 1,
-            minQuality: entry.minQuality,
-          }
-        })
-        .filter(
-          (
-            usage,
-          ): usage is {
-            entryKey: string
-            bundleId: string
-            bundleName: string
-            completed: boolean
-            requiredPerSubmission: number
-            minQuality?: string
-          } => usage !== null,
-        )
-
-      return {
-        item,
-        inventory: progress.inventoryByItemId[itemId] ?? 0,
-        usages,
-      }
+    result.push({
+      item,
+      inventory: progress.inventoryByItemId[itemId] ?? 0,
+      usages,
     })
-    .filter((entry): entry is SeasonItemEntry => entry !== null)
-    .sort((a, b) => a.item.name.localeCompare(b.item.name))
+  }
+
+  return result.sort((a, b) => a.item.name.localeCompare(b.item.name))
 }

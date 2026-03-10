@@ -30,8 +30,31 @@ import type {
   SelectedFarm,
 } from '@/types'
 
+type BundlesState = {
+  currentFarmId: string | null
+  selectedFarm: SelectedFarm | null
+  farmSessionId: string | null
+  farmStatus: FarmConnectionStatus
+  heartbeatTimer: ReturnType<typeof setInterval> | null
+  unsubscribeFarmChannel: (() => void) | null
+  unsubscribeSessionChannel: (() => void) | null
+  activeSessionUserIds: string[]
+  roomsById: Record<RoomId, Room>
+  itemsById: Record<string, Item>
+  bundlesById: Record<string, Bundle>
+  entriesByKey: Record<string, BundleEntry>
+  bundleIdsByRoomId: Record<RoomId, string[]>
+  entryKeysByBundleId: Record<string, string[]>
+  bundleIdsByItemId: Record<string, string[]>
+  itemIdsBySeason: Record<Season, string[]>
+  entryKeysByItemId: Record<string, string[]>
+  seasonCache: Partial<Record<Season, SeasonItemEntry[]>>
+  seasonCacheVersion: number
+  progress: Progress
+}
+
 export const useBundlesStore = defineStore('bundles', {
-  state: () => ({
+  state: (): BundlesState => ({
     // ─────────────────────────────
     // Farm Connection State
     // ─────────────────────────────
@@ -66,7 +89,7 @@ export const useBundlesStore = defineStore('bundles', {
     // ─────────────────────────────
     // View Cache
     // ─────────────────────────────
-    seasonCache: {} as Record<Season, SeasonItemEntry[]>,
+    seasonCache: {},
     seasonCacheVersion: 0,
 
     // ─────────────────────────────
@@ -80,7 +103,8 @@ export const useBundlesStore = defineStore('bundles', {
 
   getters: {
     isEntryCompleted: (s) => {
-      return (entryKey: string) => !!s.progress.entryCompletedById[entryKey]
+      return (entryKey: string) =>
+        !!s.progress.entryCompletedById[entryKey as keyof typeof s.progress.entryCompletedById]
     },
 
     completedItemsForBundle: (s) => {
@@ -118,29 +142,47 @@ export const useBundlesStore = defineStore('bundles', {
     },
 
     // Bundles grouped by room (for room sorting UI)
-    bundlesByRoomView() {
+    bundlesByRoomView: (s) => {
       return buildBundlesByRoomView({
-        roomsById: this.roomsById,
-        bundleIdsByRoomId: this.bundleIdsByRoomId,
-        bundlesById: this.bundlesById,
-        entryKeysByBundleId: this.entryKeysByBundleId,
-        entriesByKey: this.entriesByKey,
-        itemsById: this.itemsById,
-        entryCompletedById: this.progress.entryCompletedById,
-        getBundleProgress: this.bundleProgress,
-        getRoomProgress: this.roomProgress,
+        roomsById: s.roomsById,
+        bundleIdsByRoomId: s.bundleIdsByRoomId,
+        bundlesById: s.bundlesById,
+        entryKeysByBundleId: s.entryKeysByBundleId,
+        entriesByKey: s.entriesByKey,
+        itemsById: s.itemsById,
+        entryCompletedById: s.progress.entryCompletedById as Record<string, boolean>,
+        getBundleProgress: (bundleId: string) => {
+          const entryKeys = s.entryKeysByBundleId[bundleId] ?? []
+          const requiredCount = s.bundlesById[bundleId]?.requiredCount ?? 0
+
+          return getBundleProgress(entryKeys, s.progress.entryCompletedById, requiredCount)
+        },
+        getRoomProgress: (roomId: RoomId) => {
+          return getRoomProgress(
+            roomId,
+            s.bundleIdsByRoomId,
+            s.entryKeysByBundleId,
+            s.progress.entryCompletedById,
+            s.bundlesById,
+          )
+        },
       })
     },
 
     // Flat bundle list (sort by name)
-    bundlesView() {
+    bundlesView: (s) => {
       return buildBundlesView({
-        bundlesById: this.bundlesById,
-        entryKeysByBundleId: this.entryKeysByBundleId,
-        entriesByKey: this.entriesByKey,
-        itemsById: this.itemsById,
-        entryCompletedById: this.progress.entryCompletedById,
-        getBundleProgress: this.bundleProgress,
+        bundlesById: s.bundlesById,
+        entryKeysByBundleId: s.entryKeysByBundleId,
+        entriesByKey: s.entriesByKey,
+        itemsById: s.itemsById,
+        entryCompletedById: s.progress.entryCompletedById as Record<string, boolean>,
+        getBundleProgress: (bundleId: string) => {
+          const entryKeys = s.entryKeysByBundleId[bundleId] ?? []
+          const requiredCount = s.bundlesById[bundleId]?.requiredCount ?? 0
+
+          return getBundleProgress(entryKeys, s.progress.entryCompletedById, requiredCount)
+        },
       })
     },
 
@@ -362,7 +404,7 @@ export const useBundlesStore = defineStore('bundles', {
         next[entryKey] = !!value?.c
       }
 
-      this.progress.entryCompletedById = next
+      this.progress.entryCompletedById = next as Progress['entryCompletedById']
 
       this.seasonCache = {}
       this.seasonCacheVersion++
@@ -394,10 +436,11 @@ export const useBundlesStore = defineStore('bundles', {
     async toggleEntry(entryKey: string) {
       if (!this.currentFarmId) return
 
-      const newValue = !this.progress.entryCompletedById[entryKey]
+      const progressKey = entryKey as keyof typeof this.progress.entryCompletedById
+      const newValue = !this.progress.entryCompletedById[progressKey]
 
       // optimistic update
-      this.progress.entryCompletedById[entryKey] = newValue
+      this.progress.entryCompletedById[progressKey] = newValue
       this.seasonCache = {}
       this.seasonCacheVersion++
 
@@ -418,7 +461,7 @@ export const useBundlesStore = defineStore('bundles', {
     },
 
     resetProgress() {
-      this.progress.entryCompletedById = {}
+      this.progress.entryCompletedById = {} as Progress['entryCompletedById']
       this.progress.inventoryByItemId = {}
 
       this.seasonCache = {}
