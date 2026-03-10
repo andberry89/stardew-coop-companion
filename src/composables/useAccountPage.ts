@@ -11,11 +11,44 @@ import { useBundlesStore } from '@/stores/bundles'
 import { useToast } from '@/composables/useToast'
 import type { Farm } from '@/types'
 
+const AVATAR_OPTIONS = [
+  'abigail',
+  'alex',
+  'caroline',
+  'clint',
+  'elliott',
+  'emily',
+  'evelyn',
+  'gus',
+  'haley',
+  'harvey',
+  'kent',
+  'krobus',
+  'leah',
+  'leo',
+  'linus',
+  'marnie',
+  'maru',
+  'penny',
+  'pierre',
+  'robin',
+  'sam',
+  'sandy',
+  'sebastian',
+  'shane',
+  'vincent',
+  'willy',
+  'wizard',
+] as const
+
 export function useAccountPage() {
   const router = useRouter()
   const store = useBundlesStore()
   const toast = useToast()
 
+  // ─────────────────────────────
+  // Page State
+  // ─────────────────────────────
   const email = ref<string | null>(null)
   const displayName = ref('')
   const farms = ref<Farm[]>([])
@@ -36,37 +69,16 @@ export function useAccountPage() {
   const deleteFarmLoading = ref(false)
   const connectingFarmId = ref<string | null>(null)
 
-  const avatarOptions = [
-    'abigail',
-    'alex',
-    'caroline',
-    'clint',
-    'elliott',
-    'emily',
-    'evelyn',
-    'gus',
-    'haley',
-    'harvey',
-    'kent',
-    'krobus',
-    'leah',
-    'leo',
-    'linus',
-    'marnie',
-    'maru',
-    'penny',
-    'pierre',
-    'robin',
-    'sam',
-    'sandy',
-    'sebastian',
-    'shane',
-    'vincent',
-    'willy',
-    'wizard',
-  ]
+  const avatarOptions = AVATAR_OPTIONS
 
+  // ─────────────────────────────
+  // Bootstrap
+  // ─────────────────────────────
   onMounted(async () => {
+    await initializeAccountPage()
+  })
+
+  async function initializeAccountPage() {
     const { data } = await supabase.auth.getUser()
     currentUserId.value = data.user?.id ?? null
     email.value = data.user?.email ?? null
@@ -78,17 +90,25 @@ export function useAccountPage() {
     }
 
     farms.value = await getMyFarms()
+
+    // Reconnect to the last farm automatically if it still exists in the user's farm list.
     const lastFarmId = localStorage.getItem('lastFarmId')
-
-    if (lastFarmId) {
-      const farm = farms.value.find((f) => f.id === lastFarmId)
-
-      if (farm) {
-        await store.connectToFarm(farm)
-        await router.push(`/farm/${farm.code}`)
-      }
+    if (!lastFarmId) {
+      return
     }
-  })
+
+    const farm = farms.value.find((f) => f.id === lastFarmId)
+    if (!farm) {
+      return
+    }
+
+    await store.connectToFarm(farm)
+    await router.push(`/farm/${farm.code}`)
+  }
+
+  // ─────────────────────────────
+  // Profile + Session Actions
+  // ─────────────────────────────
 
   async function logout() {
     if (logoutLoading.value) return
@@ -141,6 +161,10 @@ export function useAccountPage() {
   function cancelEdit() {
     isEditing.value = false
   }
+
+  // ─────────────────────────────
+  // Farm Actions
+  // ─────────────────────────────
 
   async function createFarm() {
     if (createFarmLoading.value) return
@@ -226,6 +250,7 @@ export function useAccountPage() {
         return
       }
 
+      // Success feedback is shown after navigation via the shared route-flash helper.
       await router.push({
         path: `/farm/${farm.code}`,
         query: buildFlashQuery(
@@ -312,6 +337,10 @@ export function useAccountPage() {
       leavingFarmId.value = null
     }
   }
+
+  // ─────────────────────────────
+  // Confirmation Actions
+  // ─────────────────────────────
 
   async function deleteFarm(farmId: string) {
     if (!currentUserId.value) return

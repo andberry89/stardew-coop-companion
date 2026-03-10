@@ -13,6 +13,9 @@ export function useAppHeader() {
   const router = useRouter()
   const toast = useToast()
 
+  // ─────────────────────────────
+  // Header State
+  // ─────────────────────────────
   const partnerDisplayName = ref<string | null>(null)
   const currentUserId = ref<string | null>(null)
   const currentAvatar = ref<string | null>(null)
@@ -27,6 +30,9 @@ export function useAppHeader() {
   const farmCode = computed(() => store.selectedFarm?.code ?? '')
   const seatCount = computed(() => store.activeSessionUserIds.length)
 
+  // ─────────────────────────────
+  // Session Actions
+  // ─────────────────────────────
   async function disconnect() {
     try {
       await disconnectCurrentFarmIfNeeded()
@@ -56,6 +62,9 @@ export function useAppHeader() {
     await disconnect()
   }
 
+  // ─────────────────────────────
+  // Import / Export Actions
+  // ─────────────────────────────
   async function openExport() {
     if (exportLoading.value) return
     if (!store.currentFarmId) return
@@ -102,6 +111,7 @@ export function useAppHeader() {
       toast.success('State copied')
       return
     } catch {
+      // Fallback for browsers where the clipboard API is unavailable or blocked.
       const textarea = document.createElement('textarea')
       textarea.value = exportCode.value
       textarea.setAttribute('readonly', '')
@@ -121,15 +131,27 @@ export function useAppHeader() {
     }
   }
 
+  // ─────────────────────────────
+  // Bootstrap
+  // ─────────────────────────────
   onMounted(async () => {
+    await initializeHeader()
+  })
+
+  async function initializeHeader() {
     const { data } = await supabase.auth.getUser()
     currentUserId.value = data.user?.id ?? null
 
-    if (data.user) {
-      currentAvatar.value = await getProfileAvatar(data.user.id)
+    if (!data.user) {
+      return
     }
-  })
 
+    currentAvatar.value = await getProfileAvatar(data.user.id)
+  }
+
+  // ─────────────────────────────
+  // Partner Presence
+  // ─────────────────────────────
   watch(
     () => store.activeSessionUserIds,
     async (ids) => {
@@ -138,6 +160,7 @@ export function useAppHeader() {
         return
       }
 
+      // In co-op, show the other active player when a second session is connected.
       const partnerId = ids.find((id) => id !== currentUserId.value)
       if (!partnerId) {
         partnerDisplayName.value = null

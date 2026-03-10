@@ -89,6 +89,7 @@ export const useBundlesStore = defineStore('bundles', {
     // ─────────────────────────────
     // View Cache
     // ─────────────────────────────
+    // Cached season rows are rebuilt whenever synced progress or local inventory changes.
     seasonCache: {},
     seasonCacheVersion: 0,
 
@@ -288,7 +289,8 @@ export const useBundlesStore = defineStore('bundles', {
         this.unsubscribeSessionChannel = null
       }
 
-      // attempt to remove this user's session row immediately so presence is accurate
+      // Remove this session row on disconnect so active-seat tracking stays accurate
+      // even before any backend cleanup or timeout logic runs.
       try {
         const { data: userData } = await supabase.auth.getUser()
         const myId = userData?.user?.id ?? null
