@@ -13,13 +13,13 @@ import {
   getRoomProgress,
 } from '@/lib/bundles/progress'
 import { buildSeasonView } from '@/lib/bundles/seasonView'
+import { buildBundlesByRoomView, buildBundlesView } from '@/lib/bundles/views'
 import { buildStateCode, parseStateCode } from '@/lib/bundles/stateCode'
 import { supabase } from '@/lib/supabase'
 
 import type {
   Bundle,
   BundleEntry,
-  BundleItem,
   FarmConnectionStatus,
   Item,
   Progress,
@@ -118,81 +118,30 @@ export const useBundlesStore = defineStore('bundles', {
     },
 
     // Bundles grouped by room (for room sorting UI)
-    bundlesByRoomView(): Array<{
-      room: Room
-      progress: ReturnType<ReturnType<typeof useBundlesStore>['roomProgress']>
-      bundles: Array<{
-        bundle: Bundle
-        progress: ReturnType<ReturnType<typeof useBundlesStore>['bundleProgress']>
-        items: BundleItem[]
-      }>
-    }> {
-      const rooms = Object.values(this.roomsById).sort((a, b) => a.sortOrder - b.sortOrder)
-
-      return rooms.map((room) => {
-        const bundleIds = this.bundleIdsByRoomId[room.id] ?? []
-        const bundles = bundleIds
-          .map((id) => this.bundlesById[id])
-          .filter((b): b is Bundle => !!b)
-          .sort((a, b) => {
-            const ao = a.sortOrder ?? Number.POSITIVE_INFINITY
-            const bo = b.sortOrder ?? Number.POSITIVE_INFINITY
-            if (ao !== bo) return ao - bo
-            return a.name.localeCompare(b.name)
-          })
-
-        return {
-          room,
-          progress: this.roomProgress(room.id),
-          bundles: bundles.map((bundle) => {
-            const keys = this.entryKeysByBundleId[bundle.id] ?? []
-            const items: BundleItem[] = keys.map((entryKey) => {
-              const entry = this.entriesByKey[entryKey]
-              const completed = !!this.progress.entryCompletedById[entryKey]
-
-              return {
-                entryKey,
-                entry,
-                completed,
-                item: this.itemsById[entry.itemId],
-              }
-            })
-
-            return {
-              bundle,
-              progress: this.bundleProgress(bundle.id),
-              items,
-            }
-          }),
-        }
+    bundlesByRoomView() {
+      return buildBundlesByRoomView({
+        roomsById: this.roomsById,
+        bundleIdsByRoomId: this.bundleIdsByRoomId,
+        bundlesById: this.bundlesById,
+        entryKeysByBundleId: this.entryKeysByBundleId,
+        entriesByKey: this.entriesByKey,
+        itemsById: this.itemsById,
+        entryCompletedById: this.progress.entryCompletedById,
+        getBundleProgress: this.bundleProgress,
+        getRoomProgress: this.roomProgress,
       })
     },
 
     // Flat bundle list (sort by name)
-    bundlesView(): Array<{
-      bundle: Bundle
-      progress: ReturnType<ReturnType<typeof useBundlesStore>['bundleProgress']>
-      items: BundleItem[]
-    }> {
-      return Object.values(this.bundlesById)
-        .slice()
-        .sort((a, b) => a.name.localeCompare(b.name))
-        .map((bundle) => {
-          const keys = this.entryKeysByBundleId[bundle.id] ?? []
-          const items: BundleItem[] = keys.map((entryKey) => {
-            const entry = this.entriesByKey[entryKey]
-            const completed = !!this.progress.entryCompletedById[entryKey]
-
-            return {
-              entryKey,
-              entry,
-              completed,
-              item: this.itemsById[entry.itemId],
-            }
-          })
-
-          return { bundle, progress: this.bundleProgress(bundle.id), items }
-        })
+    bundlesView() {
+      return buildBundlesView({
+        bundlesById: this.bundlesById,
+        entryKeysByBundleId: this.entryKeysByBundleId,
+        entriesByKey: this.entriesByKey,
+        itemsById: this.itemsById,
+        entryCompletedById: this.progress.entryCompletedById,
+        getBundleProgress: this.bundleProgress,
+      })
     },
 
     // Season view (items + per-bundle usages)
