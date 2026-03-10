@@ -1,10 +1,10 @@
 <template>
   <div class="max-w-md mx-auto mt-20 px-4">
     <div class="w-full max-w-md">
-      <div class="text-center mb-6">
+      <RouterLink to="/" class="block text-center mb-6">
         <img src="/images/main-logo.png" alt="Stardew Valley Logo" class="mx-auto mb-4 w-2/3" />
         <h1 class="text-lg font-stardew-bold text-white">CO-OP COMPANION</h1>
-      </div>
+      </RouterLink>
 
       <div class="border-menu grad-amber rounded-lg p-6 shadow-xl space-y-4">
         <template v-if="mode === 'login'">
@@ -20,19 +20,13 @@
               class="w-full border-menu bg-amber-50 rounded px-3 py-2 text-orange-950 placeholder:text-orange-700"
             />
 
-            <div class="space-y-1">
-              <input
-                v-model="password"
-                type="password"
-                placeholder="Password"
-                autocomplete="current-password"
-                class="w-full border-menu bg-amber-50 rounded px-3 py-2 text-orange-950 placeholder:text-orange-700"
-              />
-
-              <p class="text-xs text-orange-950/80 px-1">
-                Use 8+ characters with a letter and a number.
-              </p>
-            </div>
+            <input
+              v-model="password"
+              type="password"
+              placeholder="Password"
+              autocomplete="current-password"
+              class="w-full border-menu bg-amber-50 rounded px-3 py-2 text-orange-950 placeholder:text-orange-700"
+            />
 
             <div class="space-y-2 pt-2">
               <button
@@ -140,7 +134,7 @@
 </template>
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import {
   getPasswordValidationMessage,
   requestPasswordReset,
@@ -151,6 +145,7 @@ import {
 import { supabase } from '@/lib/supabase'
 
 const route = useRoute()
+const router = useRouter()
 
 const email = ref('')
 const password = ref('')
@@ -276,7 +271,6 @@ async function handleUpdatePassword() {
     return
   }
 
-  message.value = 'Password updated successfully.'
-  loading.value = false
+  await router.replace('/account?passwordReset=success')
 }
 </script>

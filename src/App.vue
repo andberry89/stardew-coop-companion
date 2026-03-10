@@ -15,7 +15,17 @@ const store = useBundlesStore()
 
 let unsubscribeAuth: (() => void) | null = null
 
+function isResetRoute() {
+  return (
+    router.currentRoute.value.path === '/login' && router.currentRoute.value.query.mode === 'reset'
+  )
+}
+
 async function goToLoggedOutState() {
+  if (isResetRoute()) {
+    return
+  }
+
   if (router.currentRoute.value.path !== '/login') {
     await router.replace('/login')
   }
@@ -24,6 +34,10 @@ async function goToLoggedOutState() {
 }
 
 async function goToLoggedInState() {
+  if (isResetRoute()) {
+    return
+  }
+
   if (router.currentRoute.value.path === '/login') {
     await router.replace('/account')
   }
@@ -34,6 +48,14 @@ onMounted(() => {
     data: { subscription },
   } = supabase.auth.onAuthStateChange((event, session) => {
     window.setTimeout(async () => {
+      if (event === 'PASSWORD_RECOVERY') {
+        if (!isResetRoute()) {
+          await router.replace('/login?mode=reset')
+        }
+
+        return
+      }
+
       const isLoggedOut =
         event === 'SIGNED_OUT' ||
         event === 'TOKEN_REFRESH_FAILED' ||
@@ -49,12 +71,6 @@ onMounted(() => {
 
       if (isLoggedIn && session) {
         await goToLoggedInState()
-      }
-
-      if (event === 'PASSWORD_RECOVERY') {
-        if (router.currentRoute.value.path !== '/login') {
-          await router.replace('/login')
-        }
       }
     }, 0)
   })

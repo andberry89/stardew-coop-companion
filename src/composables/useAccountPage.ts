@@ -23,6 +23,8 @@ export function useAccountPage() {
   const farmError = ref<string | null>(null)
   const currentUserId = ref<string | null>(null)
   const farmPendingDelete = ref<string | null>(null)
+  const deleteAccountPending = ref(false)
+  const deleteAccountLoading = ref(false)
   const logoutLoading = ref(false)
   const saveProfileLoading = ref(false)
   const createFarmLoading = ref(false)
@@ -363,6 +365,19 @@ export function useAccountPage() {
     }
   }
 
+  async function confirmDeleteAccount() {
+    if (deleteAccountLoading.value) return
+
+    deleteAccountLoading.value = true
+
+    try {
+      toast.info('Account deletion is not available yet.')
+      deleteAccountPending.value = false
+    } finally {
+      deleteAccountLoading.value = false
+    }
+  }
+
   return {
     email,
     displayName,
@@ -374,6 +389,8 @@ export function useAccountPage() {
     farmError,
     currentUserId,
     farmPendingDelete,
+    deleteAccountPending,
+    deleteAccountLoading,
     logoutLoading,
     saveProfileLoading,
     createFarmLoading,
@@ -390,5 +407,6 @@ export function useAccountPage() {
     joinFarm,
     leaveFarm,
     confirmDelete,
+    confirmDeleteAccount,
   }
 }
