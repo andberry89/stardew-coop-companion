@@ -196,16 +196,7 @@ async function handleSignIn() {
     return
   }
 
-  await router.replace({
-    path: '/account',
-    query: buildFlashQuery(
-      {},
-      {
-        type: 'success',
-        message: 'Signed in successfully.',
-      },
-    ),
-  })
+  await router.replace('/account')
 }
 
 async function handleSignUp() {
