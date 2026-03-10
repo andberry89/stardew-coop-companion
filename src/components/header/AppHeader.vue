@@ -6,6 +6,7 @@
       :importLoading="importLoading"
       :logoutLoading="logoutLoading"
       @account="handleLeaveFarm"
+      @help="openHelp"
       @export="openExport"
       @import="openImport"
       @logout="logout"
@@ -63,6 +64,7 @@ const {
   handleLeaveFarm,
   logout,
   openExport,
+  openHelp,
   openImport,
   runImport,
   copyExport,
