@@ -5,6 +5,7 @@ import { getMyFarms, getFarmByCode, type Farm } from '@/lib/farms'
 import { getProfile, updateProfile } from '@/lib/profiles'
 import { getErrorMessage, logError } from '@/lib/errors'
 import { logoutWithFarmDisconnect } from '@/lib/session'
+import { deleteAccount as deleteAccountRequest } from '@/lib/auth'
 import { useBundlesStore } from '@/stores/bundles'
 import { useToast } from '@/composables/useToast'
 
@@ -371,8 +372,22 @@ export function useAccountPage() {
     deleteAccountLoading.value = true
 
     try {
-      toast.info('Account deletion is not available yet.')
+      await store.disconnectFromFarm()
+
+      const { error } = await deleteAccountRequest()
+
+      if (error) {
+        logError('deleteAccount failed', error)
+        toast.error('Failed to delete account')
+        return
+      }
+
       deleteAccountPending.value = false
+      await supabase.auth.signOut()
+      await router.replace('/login')
+    } catch (error) {
+      logError('deleteAccount failed', error)
+      toast.error(getErrorMessage(error, 'Failed to delete account'))
     } finally {
       deleteAccountLoading.value = false
     }

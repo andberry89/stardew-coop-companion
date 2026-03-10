@@ -50,3 +50,19 @@ export async function updatePassword(password: string) {
     password,
   })
 }
+
+export async function deleteAccount() {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  console.log('deleteAccount session?', {
+    hasSession: !!session,
+    hasAccessToken: !!session?.access_token,
+    userId: session?.user?.id ?? null,
+  })
+
+  return supabase.functions.invoke('delete-account', {
+    body: {},
+  })
+}
