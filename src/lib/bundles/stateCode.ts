@@ -10,6 +10,29 @@ export type StateCodePayload = {
   entries: Record<string, StateCodeEntry>
 }
 
+export class StateCodeError extends Error {
+  code:
+    | 'INVALID_FORMAT'
+    | 'INVALID_ENCODING'
+    | 'INVALID_JSON'
+    | 'UNSUPPORTED_SCHEMA'
+    | 'INVALID_STRUCTURE'
+
+  constructor(
+    code:
+      | 'INVALID_FORMAT'
+      | 'INVALID_ENCODING'
+      | 'INVALID_JSON'
+      | 'UNSUPPORTED_SCHEMA'
+      | 'INVALID_STRUCTURE',
+    message: string,
+  ) {
+    super(message)
+    this.name = 'StateCodeError'
+    this.code = code
+  }
+}
+
 export async function gzipString(input: string): Promise<string> {
   const stream = new CompressionStream('gzip')
   const writer = stream.writable.getWriter()
@@ -31,27 +54,57 @@ export async function gunzipString(base64: string): Promise<string> {
   return new TextDecoder().decode(decompressed)
 }
 
+export function getStateCodeErrorMessage(error: unknown): string {
+  if (error instanceof StateCodeError) {
+    if (error.code === 'UNSUPPORTED_SCHEMA') {
+      return 'Wrong version.'
+    }
+    return 'Invalid code.'
+  }
+  return 'Import failed.'
+}
+
 export async function parseStateCode(code: string): Promise<StateCodePayload> {
+  const trimmedCode = code.trim()
+  let json: string
+
+  if (trimmedCode.startsWith('SCC2:')) {
+    const encoded = trimmedCode.slice(5)
+
+    try {
+      json = await gunzipString(encoded)
+    } catch {
+      throw new StateCodeError('INVALID_ENCODING', 'Failed to decode SCC2 state code')
+    }
+  } else if (trimmedCode.startsWith('SCC1:')) {
+    const encoded = trimmedCode.slice(5)
+
+    try {
+      json = atob(encoded)
+    } catch {
+      throw new StateCodeError('INVALID_ENCODING', 'Failed to decode SCC1 state code')
+    }
+  } else {
+    throw new StateCodeError('INVALID_FORMAT', 'Invalid state code format')
+  }
+
   let payload: StateCodePayload
 
-  if (code.startsWith('SCC2:')) {
-    const encoded = code.replace('SCC2:', '')
-    const json = await gunzipString(encoded)
+  try {
     payload = JSON.parse(json) as StateCodePayload
-  } else if (code.startsWith('SCC1:')) {
-    const encoded = code.replace('SCC1:', '')
-    const json = atob(encoded)
-    payload = JSON.parse(json) as StateCodePayload
-  } else {
-    throw new Error('Invalid state code')
+  } catch {
+    throw new StateCodeError('INVALID_JSON', 'State code does not contain valid JSON')
   }
 
   if (payload.schema !== STATE_SCHEMA_VERSION) {
-    throw new Error(`Unsupported state schema version: ${payload.schema}`)
+    throw new StateCodeError(
+      'UNSUPPORTED_SCHEMA',
+      `Unsupported state schema version: ${payload.schema}`,
+    )
   }
 
   if (typeof payload.entries !== 'object' || payload.entries === null) {
-    throw new Error('Invalid state payload structure')
+    throw new StateCodeError('INVALID_STRUCTURE', 'Invalid state payload structure')
   }
 
   return payload
