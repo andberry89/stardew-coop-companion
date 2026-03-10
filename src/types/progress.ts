@@ -1,4 +1,4 @@
-import type { BundleEntry, Item } from '@/types'
+import type { Item } from '@/types'
 
 export type EntryKey = `${string}:${string}`
 // bundleId:entryId format

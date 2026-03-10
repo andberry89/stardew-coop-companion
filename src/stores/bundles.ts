@@ -6,6 +6,7 @@ import {
   createFarmStateChannel,
   removeFarmSession,
 } from '@/lib/bundles/connection'
+import { buildCatalogState, type CatalogPayload } from '@/lib/bundles/catalog'
 import { buildStateCode, parseStateCode } from '@/lib/bundles/stateCode'
 import { supabase } from '@/lib/supabase'
 
@@ -22,13 +23,6 @@ import type {
   SeasonItemEntry,
   SelectedFarm,
 } from '@/types'
-
-type CatalogPayload = {
-  rooms: Room[]
-  items: Item[]
-  bundles: Bundle[] // Bundle must include: room: RoomId
-  entries: BundleEntry[]
-}
 
 export const useBundlesStore = defineStore('bundles', {
   state: () => ({
@@ -272,74 +266,17 @@ export const useBundlesStore = defineStore('bundles', {
     // Catalog Initialization
     // ─────────────────────────────
     initializeCatalog(payload: CatalogPayload) {
-      // reset
-      this.roomsById = {} as Record<RoomId, Room>
-      this.itemsById = {}
-      this.bundlesById = {}
-      this.entriesByKey = {}
-      this.bundleIdsByRoomId = {} as Record<RoomId, string[]>
-      this.entryKeysByBundleId = {}
-      this.bundleIdsByItemId = {}
+      const catalogState = buildCatalogState(payload)
 
-      // rooms
-      for (const room of payload.rooms) {
-        this.roomsById[room.id] = room
-        this.bundleIdsByRoomId[room.id] = []
-      }
-
-      // items
-      for (const item of payload.items) {
-        this.itemsById[item.id] = item
-
-        for (const season of item.seasons) {
-          this.itemIdsBySeason[season] ??= []
-          this.itemIdsBySeason[season].push(item.id)
-        }
-      }
-
-      // bundles
-      for (const bundle of payload.bundles) {
-        this.bundlesById[bundle.id] = bundle
-        this.entryKeysByBundleId[bundle.id] ??= []
-        ;(this.bundleIdsByRoomId[bundle.room] ??= []).push(bundle.id)
-      }
-
-      // entries + indexes
-      for (const entry of payload.entries) {
-        const key = `${entry.bundleId}:${entry.id}`
-        this.entriesByKey[key] = entry
-        ;(this.entryKeysByBundleId[entry.bundleId] ??= []).push(key)
-
-        const ids = [entry.itemId]
-
-        for (const itemId of ids) {
-          this.bundleIdsByItemId[itemId] ??= []
-          if (!this.bundleIdsByItemId[itemId].includes(entry.bundleId)) {
-            this.bundleIdsByItemId[itemId].push(entry.bundleId)
-          }
-
-          this.entryKeysByItemId[itemId] ??= []
-          this.entryKeysByItemId[itemId].push(key)
-        }
-      }
-
-      // deterministic order
-      for (const roomId in this.bundleIdsByRoomId) {
-        this.bundleIdsByRoomId[roomId as RoomId].sort((a, b) => {
-          const A = this.bundlesById[a]
-          const B = this.bundlesById[b]
-          const ao = A?.sortOrder ?? Number.POSITIVE_INFINITY
-          const bo = B?.sortOrder ?? Number.POSITIVE_INFINITY
-          if (ao !== bo) return ao - bo
-          return (A?.name ?? a).localeCompare(B?.name ?? b)
-        })
-      }
-      for (const bundleId in this.entryKeysByBundleId) {
-        this.entryKeysByBundleId[bundleId].sort()
-      }
-      for (const itemId in this.bundleIdsByItemId) {
-        this.bundleIdsByItemId[itemId].sort()
-      }
+      this.roomsById = catalogState.roomsById
+      this.itemsById = catalogState.itemsById
+      this.bundlesById = catalogState.bundlesById
+      this.entriesByKey = catalogState.entriesByKey
+      this.bundleIdsByRoomId = catalogState.bundleIdsByRoomId
+      this.entryKeysByBundleId = catalogState.entryKeysByBundleId
+      this.bundleIdsByItemId = catalogState.bundleIdsByItemId
+      this.itemIdsBySeason = catalogState.itemIdsBySeason
+      this.entryKeysByItemId = catalogState.entryKeysByItemId
     },
 
     // ─────────────────────────────
