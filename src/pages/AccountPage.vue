@@ -69,6 +69,7 @@ import { useAccountPage } from '@/composables/useAccountPage'
 import { useRoute, useRouter } from 'vue-router'
 import { useToast } from '@/composables/useToast'
 import { onMounted } from 'vue'
+import { clearFlashQuery, readFlashQuery } from '@/lib/flash'
 
 const {
   email,
@@ -106,13 +107,18 @@ const router = useRouter()
 const toast = useToast()
 
 onMounted(() => {
-  if (route.query.passwordReset === 'success') {
-    toast.success('Password updated successfully.')
+  const flash = readFlashQuery(route.query)
 
-    const query = { ...route.query }
-    delete query.passwordReset
-
-    router.replace({ query })
+  if (!flash) {
+    return
   }
+
+  if (flash.type === 'error') {
+    toast.error(flash.message)
+  } else {
+    toast.success(flash.message)
+  }
+
+  router.replace({ query: clearFlashQuery(route.query) })
 })
 </script>
