@@ -2,6 +2,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { getProfileAvatar, getProfileDisplayName } from '@/lib/profiles'
+import { getStateCodeErrorMessage } from '@/lib/bundles/stateCode'
 import { disconnectCurrentFarmIfNeeded, logoutWithFarmDisconnect } from '@/lib/session'
 import { useBundlesStore } from '@/stores/bundles'
 import { useToast } from '@/composables/useToast'
@@ -77,7 +78,7 @@ export function useAppHeader() {
       modalType.value = null
       importInput.value = ''
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Import failed')
+      toast.error(getStateCodeErrorMessage(err))
     } finally {
       importLoading.value = false
     }
