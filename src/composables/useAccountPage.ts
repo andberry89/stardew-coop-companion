@@ -1,5 +1,6 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { buildFlashQuery } from '@/lib/flash'
 import { supabase } from '@/lib/supabase'
 import { getMyFarms, getFarmByCode, type Farm } from '@/lib/farms'
 import { getProfile, updateProfile } from '@/lib/profiles'
@@ -224,7 +225,16 @@ export function useAccountPage() {
         return
       }
 
-      await router.push(`/farm/${farm.code}`)
+      await router.push({
+        path: `/farm/${farm.code}`,
+        query: buildFlashQuery(
+          {},
+          {
+            type: 'success',
+            message: 'Connected to farm.',
+          },
+        ),
+      })
     } finally {
       connectingFarmId.value = null
     }

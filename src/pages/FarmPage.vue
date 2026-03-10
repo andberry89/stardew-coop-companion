@@ -34,11 +34,13 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import type { FilterState, ViewStatus } from '@/types'
 import { watchEffect } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useBundlesStore } from '@/stores/bundles'
+import { useToast } from '@/composables/useToast'
+import { clearFlashQuery, readFlashQuery } from '@/lib/flash'
 
 import AppHeader from '@/components/header/AppHeader.vue'
 import ViewToggle from '@/components/layout/ViewToggle.vue'
@@ -56,8 +58,26 @@ const filters = ref<FilterState>({
   roomStatus: null,
 })
 
+const route = useRoute()
 const router = useRouter()
 const store = useBundlesStore()
+const toast = useToast()
+
+onMounted(() => {
+  const flash = readFlashQuery(route.query)
+
+  if (!flash) {
+    return
+  }
+
+  if (flash.type === 'error') {
+    toast.error(flash.message)
+  } else {
+    toast.success(flash.message)
+  }
+
+  router.replace({ query: clearFlashQuery(route.query) })
+})
 
 watchEffect(() => {
   if (!store.currentFarmId) {
