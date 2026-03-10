@@ -12,6 +12,7 @@ import {
   getCompletedItemsForBundle,
   getRoomProgress,
 } from '@/lib/bundles/progress'
+import { buildSeasonView } from '@/lib/bundles/seasonView'
 import { buildStateCode, parseStateCode } from '@/lib/bundles/stateCode'
 import { supabase } from '@/lib/supabase'
 
@@ -201,40 +202,15 @@ export const useBundlesStore = defineStore('bundles', {
           return s.seasonCache[season]
         }
 
-        const itemIds =
-          season === 'any'
-            ? (s.itemIdsBySeason['any'] ?? [])
-            : [...(s.itemIdsBySeason[season] ?? []), ...(s.itemIdsBySeason['any'] ?? [])]
-
-        const result = itemIds
-          .map((itemId) => {
-            const item = s.itemsById[itemId]
-            if (!item) return null
-
-            const entryKeys = s.entryKeysByItemId[itemId] ?? []
-
-            const usages = entryKeys.map((entryKey) => {
-              const entry = s.entriesByKey[entryKey]
-              const bundle = s.bundlesById[entry.bundleId]
-
-              return {
-                entryKey,
-                bundleId: entry.bundleId,
-                bundleName: bundle?.name ?? entry.bundleId,
-                completed: !!s.progress.entryCompletedById[entryKey],
-                requiredPerSubmission: entry.requiredPerSubmission ?? 1,
-                minQuality: entry.minQuality,
-              }
-            })
-
-            return {
-              item,
-              inventory: s.progress.inventoryByItemId[itemId] ?? 0,
-              usages,
-            }
-          })
-          .filter((x): x is SeasonItemEntry => !!x)
-          .sort((a, b) => a.item.name.localeCompare(b.item.name))
+        const result = buildSeasonView({
+          season,
+          itemIdsBySeason: s.itemIdsBySeason,
+          itemsById: s.itemsById,
+          entryKeysByItemId: s.entryKeysByItemId,
+          entriesByKey: s.entriesByKey,
+          bundlesById: s.bundlesById,
+          progress: s.progress,
+        })
 
         s.seasonCache[season] = result
         return result
