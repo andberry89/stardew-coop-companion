@@ -192,9 +192,20 @@ async function handleSignIn() {
 
   if (error) {
     message.value = error.message
+    loading.value = false
+    return
   }
 
-  loading.value = false
+  await router.replace({
+    path: '/account',
+    query: buildFlashQuery(
+      {},
+      {
+        type: 'success',
+        message: 'Signed in successfully.',
+      },
+    ),
+  })
 }
 
 async function handleSignUp() {
