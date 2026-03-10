@@ -1,5 +1,23 @@
 import { supabase } from './supabase'
 
+const PASSWORD_MIN_LENGTH = 8
+
+export function getPasswordValidationMessage(password: string): string | null {
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    return 'Password must be at least 8 characters.'
+  }
+
+  if (!/[A-Za-z]/.test(password)) {
+    return 'Password must include a letter.'
+  }
+
+  if (!/\d/.test(password)) {
+    return 'Password must include a number.'
+  }
+
+  return null
+}
+
 export async function signUp(email: string, password: string) {
   return supabase.auth.signUp({
     email,

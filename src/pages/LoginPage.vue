@@ -20,13 +20,19 @@
               class="w-full border-menu bg-amber-50 rounded px-3 py-2 text-orange-950 placeholder:text-orange-700"
             />
 
-            <input
-              v-model="password"
-              type="password"
-              placeholder="Password"
-              autocomplete="current-password"
-              class="w-full border-menu bg-amber-50 rounded px-3 py-2 text-orange-950 placeholder:text-orange-700"
-            />
+            <div class="space-y-1">
+              <input
+                v-model="password"
+                type="password"
+                placeholder="Password"
+                autocomplete="current-password"
+                class="w-full border-menu bg-amber-50 rounded px-3 py-2 text-orange-950 placeholder:text-orange-700"
+              />
+
+              <p class="text-xs text-orange-950/80 px-1">
+                Use 8+ characters with a letter and a number.
+              </p>
+            </div>
 
             <div class="space-y-2 pt-2">
               <button
@@ -88,12 +94,18 @@
             Choose New Password
           </h2>
 
-          <input
-            v-model="newPassword"
-            type="password"
-            placeholder="New password"
-            class="w-full border-menu bg-amber-50 rounded px-3 py-2 text-orange-950 placeholder:text-orange-700"
-          />
+          <div class="space-y-1">
+            <input
+              v-model="newPassword"
+              type="password"
+              placeholder="New password"
+              class="w-full border-menu bg-amber-50 rounded px-3 py-2 text-orange-950 placeholder:text-orange-700"
+            />
+
+            <p class="text-xs text-orange-950/80 px-1">
+              Use 8+ characters with a letter and a number.
+            </p>
+          </div>
 
           <input
             v-model="confirmPassword"
@@ -129,7 +141,13 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { requestPasswordReset, signIn, signUp, updatePassword } from '@/lib/auth'
+import {
+  getPasswordValidationMessage,
+  requestPasswordReset,
+  signIn,
+  signUp,
+  updatePassword,
+} from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
 
 const route = useRoute()
@@ -186,6 +204,12 @@ async function handleSignIn() {
 async function handleSignUp() {
   if (!email.value || !password.value) return
 
+  const validationMessage = getPasswordValidationMessage(password.value)
+  if (validationMessage) {
+    message.value = validationMessage
+    return
+  }
+
   loading.value = true
   message.value = ''
 
@@ -229,6 +253,12 @@ async function handleSendReset() {
 
 async function handleUpdatePassword() {
   if (!newPassword.value || !confirmPassword.value) return
+
+  const validationMessage = getPasswordValidationMessage(newPassword.value)
+  if (validationMessage) {
+    message.value = validationMessage
+    return
+  }
 
   if (newPassword.value !== confirmPassword.value) {
     message.value = 'Passwords do not match.'
