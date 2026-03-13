@@ -11,6 +11,10 @@ import type {
   RoomSection,
 } from '@/types'
 
+// ─────────────────────────────
+// View Builder Inputs
+// ─────────────────────────────
+
 type BuildBundleItemsInput = {
   entryKeys: string[]
   entriesByKey: Record<string, BundleEntry>
@@ -33,6 +37,12 @@ type BuildBundlesByRoomViewInput = BuildBundlesViewInput & {
   getRoomProgress: (roomId: RoomId) => RoomProgress
 }
 
+// ─────────────────────────────
+// Shared Bundle Item Builder
+// ─────────────────────────────
+
+// Build the renderable item list for a bundle from its entry keys.
+// Shared by both the flat Bundle view and the Room-grouped view.
 function buildBundleItems({
   entryKeys,
   entriesByKey,
@@ -61,6 +71,11 @@ function buildBundleItems({
     .filter((item): item is BundleItem => item !== null)
 }
 
+// ─────────────────────────────
+// Flat Bundle View
+// ─────────────────────────────
+
+// Build the flat Bundle view, sorted alphabetically by bundle name.
 export function buildBundlesView({
   bundlesById,
   entryKeysByBundleId,
@@ -89,6 +104,12 @@ export function buildBundlesView({
     })
 }
 
+// ─────────────────────────────
+// Room View
+// ─────────────────────────────
+
+// Build the Room view by grouping bundles under their parent room
+// and attaching progress data for both rooms and bundles.
 export function buildBundlesByRoomView({
   roomsById,
   bundleIdsByRoomId,
@@ -100,6 +121,7 @@ export function buildBundlesByRoomView({
   getBundleProgress,
   getRoomProgress,
 }: BuildBundlesByRoomViewInput): RoomSection[] {
+  // Room sections follow the catalog sort order used by the tracker UI.
   const rooms = Object.values(roomsById).sort((a, b) => a.sortOrder - b.sortOrder)
 
   return rooms.map((room) => {
@@ -109,6 +131,8 @@ export function buildBundlesByRoomView({
       .map((bundleId) => bundlesById[bundleId])
       .filter((bundle): bundle is Bundle => !!bundle)
       .sort((a, b) => {
+        // Keep bundle order stable within each room, preferring explicit
+        // sortOrder and falling back to alphabetical order.
         const sortA = a.sortOrder ?? Number.POSITIVE_INFINITY
         const sortB = b.sortOrder ?? Number.POSITIVE_INFINITY
 

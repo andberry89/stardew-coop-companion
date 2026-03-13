@@ -103,6 +103,9 @@ export const useBundlesStore = defineStore('bundles', {
   }),
 
   getters: {
+    // ─────────────────────────────
+    // Progress Helpers
+    // ─────────────────────────────
     isEntryCompleted: (s) => {
       return (entryKey: string) =>
         !!s.progress.entryCompletedById[entryKey as keyof typeof s.progress.entryCompletedById]
@@ -141,6 +144,10 @@ export const useBundlesStore = defineStore('bundles', {
         )
       }
     },
+
+    // ─────────────────────────────
+    // Bundle / Room Views
+    // ─────────────────────────────
 
     // Bundles grouped by room (for room sorting UI)
     bundlesByRoomView: (s) => {
@@ -187,6 +194,10 @@ export const useBundlesStore = defineStore('bundles', {
       })
     },
 
+    // ─────────────────────────────
+    // Seasonal View
+    // ─────────────────────────────
+
     // Season view (items + per-bundle usages)
     seasonView: (s) => {
       return (season: Season): SeasonItemEntry[] => {
@@ -208,6 +219,10 @@ export const useBundlesStore = defineStore('bundles', {
         return result
       }
     },
+
+    // ─────────────────────────────
+    // View Utilities
+    // ─────────────────────────────
 
     // Check if items are in selected season
     isItemInSeason: (s) => {
@@ -241,6 +256,13 @@ export const useBundlesStore = defineStore('bundles', {
     // ─────────────────────────────
     // Farm Connection Lifecycle
     // ─────────────────────────────
+
+    // Establish a realtime connection to a farm.
+    // The sequence is important:
+    // 1. claim an active seat
+    // 2. load the current farm state
+    // 3. subscribe to realtime updates and session presence
+    // 4. start the seat heartbeat to keep the connection alive
     async connectToFarm(farm: SelectedFarm) {
       this.stopHeartbeat()
       this.farmStatus = 'connecting'
@@ -275,6 +297,9 @@ export const useBundlesStore = defineStore('bundles', {
       this.startHeartbeat()
     },
 
+    // Cleanly disconnect from the current farm by stopping realtime
+    // subscriptions, removing the active session row, and clearing
+    // local connection state.
     async disconnectFromFarm() {
       // stop heartbeats & realtime first
       this.stopHeartbeat()
@@ -318,6 +343,9 @@ export const useBundlesStore = defineStore('bundles', {
     // ─────────────────────────────
     // Realtime Subscriptions
     // ─────────────────────────────
+
+    // Subscribe to realtime farm_state updates and map them into
+    // the store's entryCompletedById progress state.
     subscribeToFarm() {
       if (!this.currentFarmId) return
 
@@ -327,6 +355,8 @@ export const useBundlesStore = defineStore('bundles', {
       }
 
       this.unsubscribeFarmChannel = createFarmStateChannel(this.currentFarmId, {
+        // Convert the stored state payload into the local progress map
+        // and invalidate seasonal view caches.
         onStateUpdate: (entries) => {
           this.progress.entryCompletedById = Object.fromEntries(
             Object.entries(entries).map(([key, value]) => [key, !!(value as { c?: boolean }).c]),
@@ -341,6 +371,8 @@ export const useBundlesStore = defineStore('bundles', {
       })
     },
 
+    // Track active users connected to the farm so the UI can reflect
+    // co-op presence (e.g., partner display and seat count).
     subscribeToSessions() {
       if (!this.currentFarmId) return
 
@@ -359,6 +391,9 @@ export const useBundlesStore = defineStore('bundles', {
     // ─────────────────────────────
     // Seat Heartbeat
     // ─────────────────────────────
+
+    // Periodically re-claim the seat to keep this client counted as
+    // an active farm session.
     async heartbeatSeat() {
       if (!this.currentFarmId) return
 
@@ -383,6 +418,9 @@ export const useBundlesStore = defineStore('bundles', {
     // ─────────────────────────────
     // Farm State
     // ─────────────────────────────
+
+    // Initial farm state hydration before realtime updates begin.
+    // Loads the persisted farm_state row and rebuilds the progress map.
     async loadFarmState(farmId: string) {
       this.currentFarmId = farmId
 
@@ -415,6 +453,8 @@ export const useBundlesStore = defineStore('bundles', {
     // ─────────────────────────────
     // State Import / Export
     // ─────────────────────────────
+
+    // Replace the current farm progress using an imported state code.
     async importStateCode(code: string) {
       if (!this.currentFarmId) return
 
@@ -426,6 +466,8 @@ export const useBundlesStore = defineStore('bundles', {
       })
     },
 
+    // Generate a shareable state code representing the current
+    // bundle completion state for this farm.
     async exportStateCode(): Promise<string | null> {
       if (!this.currentFarmId) return null
 
@@ -435,6 +477,9 @@ export const useBundlesStore = defineStore('bundles', {
     // ─────────────────────────────
     // Progress Mutations
     // ─────────────────────────────
+
+    // Toggle bundle entry completion with an optimistic update so
+    // the UI reflects the change immediately while the server update runs.
     async toggleEntry(entryKey: string) {
       if (!this.currentFarmId) return
 
@@ -454,6 +499,7 @@ export const useBundlesStore = defineStore('bundles', {
       })
     },
 
+    // Update local inventory counts used by the seasonal tracker view.
     setInventory(itemId: string, count: number) {
       const safe = Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0
       this.progress.inventoryByItemId[itemId] = safe
@@ -462,6 +508,7 @@ export const useBundlesStore = defineStore('bundles', {
       this.seasonCacheVersion++
     },
 
+    // Clear all tracked progress and inventory state locally.
     resetProgress() {
       this.progress.entryCompletedById = {} as Progress['entryCompletedById']
       this.progress.inventoryByItemId = {}

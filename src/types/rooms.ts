@@ -1,3 +1,4 @@
+// All Community Center room identifiers.
 export type RoomId =
   | 'pantry'
   | 'crafts-room'
@@ -6,6 +7,7 @@ export type RoomId =
   | 'bulletin-board'
   | 'vault'
 
+// Catalog metadata describing a Community Center room.
 export type Room = {
   id: RoomId
   name: string

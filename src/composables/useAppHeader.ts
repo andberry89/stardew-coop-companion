@@ -26,9 +26,58 @@ export function useAppHeader() {
   const logoutLoading = ref(false)
   const importInput = ref('')
 
+  // ─────────────────────────────
+  // Derived State
+  // ─────────────────────────────
+
   const farmName = computed(() => store.selectedFarm?.name ?? '')
   const farmCode = computed(() => store.selectedFarm?.code ?? '')
   const seatCount = computed(() => store.activeSessionUserIds.length)
+
+  // ─────────────────────────────
+  // Bootstrap
+  // ─────────────────────────────
+  onMounted(async () => {
+    await initializeHeader()
+  })
+
+  // Load the minimum user data the app header needs on startup:
+  // the signed-in user id and avatar for the menu UI.
+  async function initializeHeader() {
+    const { data } = await supabase.auth.getUser()
+    currentUserId.value = data.user?.id ?? null
+
+    if (!data.user) {
+      return
+    }
+
+    currentAvatar.value = await getProfileAvatar(data.user.id)
+  }
+
+  // ─────────────────────────────
+  // Partner Presence
+  // ─────────────────────────────
+  // Track active session users and display the other connected
+  // player in co-op when two users are present.
+  watch(
+    () => store.activeSessionUserIds,
+    async (ids) => {
+      if (!currentUserId.value || ids.length < 2) {
+        partnerDisplayName.value = null
+        return
+      }
+
+      // In co-op, show the other active player when a second session is connected.
+      const partnerId = ids.find((id) => id !== currentUserId.value)
+      if (!partnerId) {
+        partnerDisplayName.value = null
+        return
+      }
+
+      partnerDisplayName.value = await getProfileDisplayName(partnerId)
+    },
+    { immediate: true },
+  )
 
   // ─────────────────────────────
   // Session Actions
@@ -76,6 +125,8 @@ export function useAppHeader() {
     exportLoading.value = true
 
     try {
+      // Export the current farm's Community Center tracking state right
+      // before opening the modal so the code reflects the latest data.
       const code = await store.exportStateCode()
       exportCode.value = code ?? ''
       modalType.value = 'export'
@@ -95,6 +146,8 @@ export function useAppHeader() {
     importLoading.value = true
 
     try {
+      // Importing a state code replaces the current farm's tracked
+      // bundle progress with the imported state.
       await store.importStateCode(importInput.value)
       toast.success('State imported')
       modalType.value = null
@@ -134,47 +187,6 @@ export function useAppHeader() {
       }
     }
   }
-
-  // ─────────────────────────────
-  // Bootstrap
-  // ─────────────────────────────
-  onMounted(async () => {
-    await initializeHeader()
-  })
-
-  async function initializeHeader() {
-    const { data } = await supabase.auth.getUser()
-    currentUserId.value = data.user?.id ?? null
-
-    if (!data.user) {
-      return
-    }
-
-    currentAvatar.value = await getProfileAvatar(data.user.id)
-  }
-
-  // ─────────────────────────────
-  // Partner Presence
-  // ─────────────────────────────
-  watch(
-    () => store.activeSessionUserIds,
-    async (ids) => {
-      if (!currentUserId.value || ids.length < 2) {
-        partnerDisplayName.value = null
-        return
-      }
-
-      // In co-op, show the other active player when a second session is connected.
-      const partnerId = ids.find((id) => id !== currentUserId.value)
-      if (!partnerId) {
-        partnerDisplayName.value = null
-        return
-      }
-
-      partnerDisplayName.value = await getProfileDisplayName(partnerId)
-    },
-    { immediate: true },
-  )
 
   return {
     store,
