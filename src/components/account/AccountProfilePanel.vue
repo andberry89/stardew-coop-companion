@@ -104,7 +104,7 @@ defineProps<{
   displayName: string
   isEditing: boolean
   avatar: string | null
-  avatarOptions: string[]
+  avatarOptions: readonly string[]
   logoutLoading: boolean
   saveProfileLoading: boolean
   deleteAccountLoading: boolean
