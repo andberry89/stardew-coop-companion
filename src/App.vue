@@ -1,5 +1,6 @@
 <template>
   <router-view />
+  <AppFooter />
   <ToastStack />
 </template>
 
@@ -9,6 +10,7 @@ import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { useBundlesStore } from '@/stores/bundles'
 import ToastStack from '@/components/ui/ToastStack.vue'
+import AppFooter from '@/components/layout/AppFooter.vue'
 
 const router = useRouter()
 const store = useBundlesStore()
