@@ -158,12 +158,18 @@ const email = ref('')
 const password = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
+// Shared status message for auth flows on this page, including
+// validation errors, reset instructions, and success feedback.
 const message = ref('')
 const loading = ref(false)
 const mode = ref<'login' | 'forgot' | 'reset'>('login')
 
+// Keep a reference to the auth listener cleanup so it can be removed
+// when the login page unmounts.
 let unsubscribeAuth: (() => void) | null = null
 
+// This page handles sign-in, account creation, password reset requests,
+// and password updates after a Supabase recovery link.
 onMounted(() => {
   if (route.query.mode === 'reset') {
     mode.value = 'reset'
@@ -172,6 +178,8 @@ onMounted(() => {
 
   const {
     data: { subscription },
+    // Supabase emits PASSWORD_RECOVERY when the user opens a reset link,
+    // so switch the page into password update mode when that happens.
   } = supabase.auth.onAuthStateChange((event) => {
     if (event === 'PASSWORD_RECOVERY') {
       mode.value = 'reset'
@@ -280,6 +288,8 @@ async function handleUpdatePassword() {
     return
   }
 
+  // Redirect to the account page with a flash message so the success
+  // feedback appears after navigation instead of being lost on this page.
   await router.replace({
     path: '/account',
     query: buildFlashQuery(

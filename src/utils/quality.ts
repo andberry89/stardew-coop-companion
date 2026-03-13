@@ -1,5 +1,6 @@
 import type { Quality } from '@/types'
 
+// Return the icon path used for displaying item quality in the UI.
 export function qualityIconFor(quality?: Quality | string | null) {
   if (!quality) return null
 

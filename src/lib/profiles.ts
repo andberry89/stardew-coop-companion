@@ -1,10 +1,12 @@
 import { supabase } from '@/lib/supabase'
 
+// Profile fields stored for each authenticated user.
 export type Profile = {
   display_name: string | null
   avatar: string | null
 }
 
+// Fetch the full profile record for a user.
 export async function getProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
     .from('profiles')
@@ -19,6 +21,7 @@ export async function getProfile(userId: string): Promise<Profile | null> {
   return data
 }
 
+// Fetch only the avatar field for lightweight lookups.
 export async function getProfileAvatar(userId: string): Promise<string | null> {
   const { data, error } = await supabase.from('profiles').select('avatar').eq('id', userId).single()
 
@@ -29,6 +32,7 @@ export async function getProfileAvatar(userId: string): Promise<string | null> {
   return data?.avatar ?? null
 }
 
+// Fetch only the display name for lightweight lookups.
 export async function getProfileDisplayName(userId: string): Promise<string | null> {
   const { data, error } = await supabase
     .from('profiles')
@@ -43,6 +47,7 @@ export async function getProfileDisplayName(userId: string): Promise<string | nu
   return data?.display_name ?? null
 }
 
+// Update editable profile fields for the current user.
 export async function updateProfile(
   userId: string,
   input: { display_name: string; avatar: string | null },

@@ -10,36 +10,7 @@ import { deleteAccount as deleteAccountRequest } from '@/lib/auth'
 import { useBundlesStore } from '@/stores/bundles'
 import { useToast } from '@/composables/useToast'
 import type { Farm } from '@/types'
-
-const AVATAR_OPTIONS = [
-  'abigail',
-  'alex',
-  'caroline',
-  'clint',
-  'elliott',
-  'emily',
-  'evelyn',
-  'gus',
-  'haley',
-  'harvey',
-  'kent',
-  'krobus',
-  'leah',
-  'leo',
-  'linus',
-  'marnie',
-  'maru',
-  'penny',
-  'pierre',
-  'robin',
-  'sam',
-  'sandy',
-  'sebastian',
-  'shane',
-  'vincent',
-  'willy',
-  'wizard',
-] as const
+import { AVATAR_OPTIONS } from '@/constants/avatars'
 
 export function useAccountPage() {
   const router = useRouter()
@@ -78,6 +49,11 @@ export function useAccountPage() {
     await initializeAccountPage()
   })
 
+  // Initial account page load:
+  // - get the signed-in user
+  // - load profile details
+  // - fetch the user's farms
+  // - reconnect to the last farm if it is still valid
   async function initializeAccountPage() {
     const { data } = await supabase.auth.getUser()
     currentUserId.value = data.user?.id ?? null
@@ -91,7 +67,8 @@ export function useAccountPage() {
 
     farms.value = await getMyFarms()
 
-    // Reconnect to the last farm automatically if it still exists in the user's farm list.
+    // If the user last opened a farm, reconnect automatically from the
+    // account page as long as that farm still exists in their farm list.
     const lastFarmId = localStorage.getItem('lastFarmId')
     if (!lastFarmId) {
       return
@@ -188,6 +165,9 @@ export function useAccountPage() {
         return
       }
 
+      // Creating a farm is split into two steps:
+      // 1. create the farm record
+      // 2. add the creator as the first farm member/admin
       const code = Math.random().toString(36).substring(2, 8).toUpperCase()
 
       const { data: farm, error } = await supabase
@@ -239,7 +219,8 @@ export function useAccountPage() {
 
     try {
       await store.connectToFarm(farm)
-
+      // The farm store finishes the connection attempt first, then exposes
+      // the final connection state so the page can show the right feedback.
       if (store.farmStatus === 'full') {
         toast.error('Farm is full')
         return
@@ -343,6 +324,8 @@ export function useAccountPage() {
   // ─────────────────────────────
 
   async function deleteFarm(farmId: string) {
+    // Delete farm data in order so active connections and dependent rows
+    // are cleaned up before removing the farm record itself.
     if (!currentUserId.value) return
 
     const farm = farms.value.find((item) => item.id === farmId)
@@ -393,6 +376,8 @@ export function useAccountPage() {
     }
   }
 
+  // Farm deletion is staged through farmPendingDelete so the UI can ask
+  // for confirmation before running the destructive delete flow.
   async function confirmDelete() {
     if (!farmPendingDelete.value || deleteFarmLoading.value) return
 

@@ -11,3 +11,15 @@ export const ITEM_TYPE_LABELS: Record<ItemType, string> = {
   cooking: 'Cooking',
   other: 'Other',
 }
+
+export const ITEM_TYPE_ORDER: ItemType[] = [
+  'forage',
+  'crop',
+  'fish',
+  'artisan',
+  'animal',
+  'mining',
+  'resource',
+  'cooking',
+  'other',
+]

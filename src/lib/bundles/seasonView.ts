@@ -10,6 +10,9 @@ export type BuildSeasonViewInput = {
   progress: Progress
 }
 
+// Build the data used by the Seasonal tracker view.
+// Combines catalog data and current progress to show which bundles
+// use each seasonal item and whether those entries are complete.
 export function buildSeasonView({
   season,
   itemIdsBySeason,
@@ -19,6 +22,9 @@ export function buildSeasonView({
   bundlesById,
   progress,
 }: BuildSeasonViewInput): SeasonItemEntry[] {
+  // Determine which items should appear for this season.
+  // Specific seasons include both that season's items and items
+  // available in any season.
   const itemIds =
     season === 'any'
       ? (itemIdsBySeason.any ?? [])
@@ -35,6 +41,8 @@ export function buildSeasonView({
     const entryKeys = entryKeysByItemId[itemId] ?? []
     const usages: SeasonItemEntry['usages'] = []
 
+    // Build the list of bundle usages for this item so the Seasonal
+    // view can show where the item is needed and whether it is complete.
     for (const entryKey of entryKeys) {
       const entry = entriesByKey[entryKey]
       if (!entry) {
@@ -61,5 +69,6 @@ export function buildSeasonView({
     })
   }
 
+  // Sort items alphabetically for stable display in the Seasonal view.
   return result.sort((a, b) => a.item.name.localeCompare(b.item.name))
 }

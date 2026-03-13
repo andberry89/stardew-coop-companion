@@ -19,7 +19,14 @@ export type CatalogState = {
   entryKeysByItemId: Record<string, string[]>
 }
 
+// Normalize the raw Community Center catalog into lookup maps the app can
+// use for fast access by id, room, bundle, item, and season.
+
 export function buildCatalogState(payload: CatalogPayload): CatalogState {
+  // ─────────────────────────────
+  // Initialize Lookup Maps
+  // ─────────────────────────────
+
   const roomsById = {} as Record<RoomId, Room>
   const itemsById: Record<string, Item> = {}
   const bundlesById: Record<string, Bundle> = {}
@@ -30,11 +37,21 @@ export function buildCatalogState(payload: CatalogPayload): CatalogState {
   const itemIdsBySeason = {} as Record<Season, string[]>
   const entryKeysByItemId: Record<string, string[]> = {}
 
+  // ─────────────────────────────
+  // Index Rooms
+  // ─────────────────────────────
+
+  // Index rooms and initialize the room -> bundle relationship map.
   for (const room of payload.rooms) {
     roomsById[room.id] = room
     bundleIdsByRoomId[room.id] = []
   }
 
+  // ─────────────────────────────
+  // Index Items
+  // ─────────────────────────────
+
+  // Index items and group them by season for Seasonal view lookups.
   for (const item of payload.items) {
     itemsById[item.id] = item
 
@@ -44,30 +61,46 @@ export function buildCatalogState(payload: CatalogPayload): CatalogState {
     }
   }
 
+  // ─────────────────────────────
+  // Index Bundles
+  // ─────────────────────────────
+
+  // Index bundles and attach each bundle to its parent room.
   for (const bundle of payload.bundles) {
     bundlesById[bundle.id] = bundle
     entryKeysByBundleId[bundle.id] ??= []
     ;(bundleIdsByRoomId[bundle.room] ??= []).push(bundle.id)
   }
 
+  // ─────────────────────────────
+  // Index Entries
+  // ─────────────────────────────
+
+  // Index bundle entries and build reverse lookups by bundle and item.
   for (const entry of payload.entries) {
+    // Entry ids are only unique within a bundle, so use a composite key
+    // to create a stable app-wide lookup id for each entry.
     const key = `${entry.bundleId}:${entry.id}`
     entriesByKey[key] = entry
     ;(entryKeysByBundleId[entry.bundleId] ??= []).push(key)
 
     bundleIdsByItemId[entry.itemId] ??= []
     const itemBundleIds = bundleIdsByItemId[entry.itemId]
-    if (itemBundleIds && !itemBundleIds.includes(entry.bundleId)) {
+
+    if (!itemBundleIds.includes(entry.bundleId)) {
       itemBundleIds.push(entry.bundleId)
     }
 
     entryKeysByItemId[entry.itemId] ??= []
-    const itemEntryKeys = entryKeysByItemId[entry.itemId]
-    if (itemEntryKeys) {
-      itemEntryKeys.push(key)
-    }
+    entryKeysByItemId[entry.itemId].push(key)
   }
 
+  // ─────────────────────────────
+  // Normalize / Sort Indexes
+  // ─────────────────────────────
+
+  // Sort indexed relationship arrays so bundle and entry order stays stable
+  // across views and derived lookups.
   for (const roomId in bundleIdsByRoomId) {
     bundleIdsByRoomId[roomId as RoomId].sort((a, b) => {
       const bundleA = bundlesById[a]

@@ -8,6 +8,7 @@ type ToastItem = {
   type: ToastType
 }
 
+// Shared reactive toast list used across the application.
 const toasts = ref<ToastItem[]>([])
 let nextToastId = 1
 
@@ -15,6 +16,7 @@ function show(message: string, type: ToastType) {
   const id = nextToastId++
   toasts.value.push({ id, message, type })
 
+  // Automatically remove the toast after the display duration.
   window.setTimeout(() => {
     toasts.value = toasts.value.filter((toast) => toast.id !== id)
   }, 3000)

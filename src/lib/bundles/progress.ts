@@ -1,5 +1,11 @@
+// Helper functions for computing Community Center progress in the tracker.
+// These utilities derive bundle and room completion from the current
+// entry completion state stored in the app.
+
 import type { Bundle, BundleEntry, BundleProgress, Item, RoomId, RoomProgress } from '@/types'
 
+// Return the item records for bundle entries that are currently marked complete.
+// Used by the UI to display which bundle items have already been contributed.
 export function getCompletedItemsForBundle(
   entryKeys: string[],
   entryCompletedById: Record<string, boolean>,
@@ -15,6 +21,8 @@ export function getCompletedItemsForBundle(
     .filter((item): item is Item => item !== null)
 }
 
+// Calculate bundle progress based on how many entries are completed
+// compared to the bundle's required item count.
 export function getBundleProgress(
   entryKeys: string[],
   entryCompletedById: Record<string, boolean>,
@@ -31,6 +39,8 @@ export function getBundleProgress(
   }
 }
 
+// Determine room completion by checking which bundles in the room
+// have met their required entry count.
 export function getRoomProgress(
   roomId: RoomId,
   bundleIdsByRoomId: Record<RoomId, string[]>,

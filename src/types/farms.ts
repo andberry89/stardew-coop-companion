@@ -1,3 +1,4 @@
+// Farm record stored in the database and used throughout the app.
 export type Farm = {
   id: string
   name: string
@@ -6,6 +7,7 @@ export type Farm = {
   created_at: string
 }
 
+// Connection lifecycle states used by the farm realtime/session system.
 export type FarmConnectionStatus =
   | 'idle'
   | 'connecting'
@@ -14,4 +16,5 @@ export type FarmConnectionStatus =
   | 'full'
   | 'error'
 
+// Minimal farm data stored in UI state when a farm is selected.
 export type SelectedFarm = Pick<Farm, 'id' | 'name' | 'code'>

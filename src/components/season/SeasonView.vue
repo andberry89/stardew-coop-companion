@@ -5,7 +5,7 @@
       :key="seasonKey"
       :seasonKey="seasonKey"
       :typeGroups="groupedBySeasonAndType[seasonKey] ?? {}"
-      :typeOrder="TYPE_ORDER"
+      :typeOrder="ITEM_TYPE_ORDER"
     />
   </section>
 </template>
@@ -23,5 +23,5 @@ const props = defineProps<{
 const season = computed(() => props.filters.seasonViewSeason)
 const type = computed(() => props.filters.type)
 
-const { TYPE_ORDER, seasonGroups, groupedBySeasonAndType } = useSeasonView(season, type)
+const { ITEM_TYPE_ORDER, seasonGroups, groupedBySeasonAndType } = useSeasonView(season, type)
 </script>

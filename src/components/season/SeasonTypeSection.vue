@@ -49,7 +49,7 @@
 import { computed, ref } from 'vue'
 import SeasonItemRow from './SeasonItemRow.vue'
 import type { ItemType, SeasonDisplayRow } from '@/types'
-import { ITEM_TYPE_LABELS } from '@/constants/itemTypeLabels'
+import { ITEM_TYPE_LABELS } from '@/constants/itemTypes'
 
 const props = defineProps<{
   type: ItemType
