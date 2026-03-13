@@ -84,15 +84,14 @@ export function buildCatalogState(payload: CatalogPayload): CatalogState {
     entriesByKey[key] = entry
     ;(entryKeysByBundleId[entry.bundleId] ??= []).push(key)
 
-    bundleIdsByItemId[entry.itemId] ??= []
-    const itemBundleIds = bundleIdsByItemId[entry.itemId]
+    const itemBundleIds = (bundleIdsByItemId[entry.itemId] ??= [])
 
     if (!itemBundleIds.includes(entry.bundleId)) {
       itemBundleIds.push(entry.bundleId)
     }
 
-    entryKeysByItemId[entry.itemId] ??= []
-    entryKeysByItemId[entry.itemId].push(key)
+    const itemEntryKeys = (entryKeysByItemId[entry.itemId] ??= [])
+    itemEntryKeys.push(key)
   }
 
   // ─────────────────────────────
