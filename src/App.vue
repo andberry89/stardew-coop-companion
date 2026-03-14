@@ -25,10 +25,17 @@ function isResetRoute() {
   )
 }
 
+// Email confirmation opens a dedicated landing page. The app should
+// not redirect away from this page when Supabase creates a session
+// during the confirmation flow.
+function isConfirmEmailRoute() {
+  return window.location.pathname === '/confirm-email'
+}
+
 // Move the app into its logged-out state by returning to the login page
 // and disconnecting any active farm session in the store.
 async function goToLoggedOutState() {
-  if (isResetRoute()) {
+  if (isResetRoute() || isConfirmEmailRoute()) {
     return
   }
 
@@ -42,7 +49,7 @@ async function goToLoggedOutState() {
 // If the user is authenticated and still sitting on the login page,
 // send them to the account page instead.
 async function goToLoggedInState() {
-  if (isResetRoute()) {
+  if (isResetRoute() || isConfirmEmailRoute()) {
     return
   }
 

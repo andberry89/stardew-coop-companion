@@ -5,6 +5,7 @@ import LoginPage from '@/pages/LoginPage.vue'
 import AccountPage from '@/pages/AccountPage.vue'
 import FarmPage from '@/pages/FarmPage.vue'
 import HelpPage from '@/pages/HelpPage.vue'
+import ConfirmEmailPage from '@/pages/ConfirmEmailPage.vue'
 
 async function requireUser() {
   const { data } = await supabase.auth.getUser()
@@ -40,6 +41,11 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: LoginPage,
+    },
+    {
+      path: '/confirm-email',
+      name: 'confirm-email',
+      component: ConfirmEmailPage,
     },
     {
       path: '/account',
