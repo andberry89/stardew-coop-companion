@@ -47,7 +47,7 @@ export async function signOut() {
 // in reset mode so they can choose a new password.
 export async function requestPasswordReset(email: string) {
   return supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/login?mode=reset`,
+    emailRedirectTo: `${import.meta.env.VITE_APP_URL}/login`,
   })
 }
 
