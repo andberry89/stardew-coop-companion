@@ -1,5 +1,13 @@
 <template>
   <div class="max-w-5xl mx-auto p-6 space-y-6">
+    <div class="flex items-center">
+      <RouterLink
+        :to="homeRoute"
+        class="border-menu grad-blue px-3 py-2 font-stardew-thin text-blue-950 stardew-btn"
+      >
+        ← Go Back
+      </RouterLink>
+    </div>
     <div class="border-menu grad-amber rounded-lg p-6 shadow-xl space-y-3">
       <h1 class="text-3xl font-stardew-bold text-orange-950">Help & Support</h1>
       <p class="font-quicksand text-orange-950">
@@ -98,3 +106,17 @@
     </div>
   </div>
 </template>
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { RouterLink } from 'vue-router'
+import { supabase } from '@/lib/supabase'
+
+const homeRoute = ref('/login')
+
+onMounted(async () => {
+  const { data } = await supabase.auth.getUser()
+  if (data.user) {
+    homeRoute.value = '/account'
+  }
+})
+</script>
