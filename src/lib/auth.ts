@@ -1,4 +1,4 @@
-import { loginUrl } from './config'
+import { appUrl, loginUrl } from './config'
 import { supabase } from './supabase'
 
 // Password rules enforced during account creation.
@@ -28,7 +28,7 @@ export async function signUp(email: string, password: string) {
     email,
     password,
     options: {
-      emailRedirectTo: loginUrl,
+      emailRedirectTo: `${appUrl}/confirm-email`,
     },
   })
 }
