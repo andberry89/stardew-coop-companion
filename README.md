@@ -22,12 +22,8 @@ https://stardewvalleycompanion.andrewberry.me
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [How It Works](#how-it-works)
-- [Local Development](#local-development)
-- [Environment Variables](#environment-variables)
-- [Available Scripts](#available-scripts)
-- [Database](#database)
-- [Deployment](#deployment)
 - [Project Status](#project-status)
+- [Contributing](#contributing)
 - [License](#license)
 
 ---
@@ -79,120 +75,25 @@ Progress can also be **exported and imported using state codes**, allowing farms
 
 ---
 
-## Local Development
-
-This project can be run locally or self-hosted.
-
-Because the app uses **Supabase for authentication and realtime synchronization**, you will need to create your own Supabase project.
-
-### Prerequisites
-
-Node.js
-
-Required version:
-
-```sh
-^20.19.0 || >=22.12.0
-```
-
-A Supabase account  
-https://supabase.com
-
-### Clone the Repository
-
-```sh
-git clone https://github.com/andberry89/stardew-coop-companion.git
-cd stardew-coop-companion
-```
-
-### Install Dependencies
-
-```sh
-npm install
-```
-
----
-
-## Environment Variables
-
-Create a `.env` file in the project root:
-
-```sh
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-These values can be found in your Supabase project under:
-
-Project Settings → API
-
----
-
-### Run the Development Server
-
-```sh
-npm run dev
-```
-
-The app will start on the default Vite development port.
-
----
-
-## Available Scripts
-
-### Development
-
-```sh
-npm run dev
-```
-
-### Build for production
-
-```sh
-npm run build
-```
-
-### Preview production build
-
-```sh
-npm run preview
-```
-
-### Run TypeScript type check
-
-```sh
-npm run type-check
-```
-
-### Run linters
-
-```sh
-npm run lint
-```
-
-### Format source files
-
-```sh
-npm run format
-```
-
----
-
 ## Database
 
-The project relies on a **Supabase Postgres schema** with several tables and RPC functions used for:
+The application uses **Supabase Postgres** to store shared farm data.
+
+The database tracks:
 
 - farm membership
-- session tracking
-- bundle progress state synchronization
+- bundle progress state
+- active farm sessions
 
-The schema is managed directly in Supabase and can be created through the **Supabase SQL editor**.
+Supabase **Realtime channels** are used to broadcast farm progress updates to all connected players.
 
 ---
 
 ## Deployment
 
-This project is designed to deploy easily on static hosting platforms such as **Netlify** or **Vercel**.
+The production application is deployed on **Netlify** using a Vite build.
+
+Supabase provides authentication, database storage, and realtime synchronization for shared farm progress.
 
 ### Build Settings
 
