@@ -1,3 +1,4 @@
+import { loginUrl } from './config'
 import { supabase } from './supabase'
 
 // Password rules enforced during account creation.
@@ -27,7 +28,7 @@ export async function signUp(email: string, password: string) {
     email,
     password,
     options: {
-      emailRedirectTo: `${window.location.origin}/login`,
+      emailRedirectTo: loginUrl,
     },
   })
 }
@@ -47,7 +48,7 @@ export async function signOut() {
 // in reset mode so they can choose a new password.
 export async function requestPasswordReset(email: string) {
   return supabase.auth.resetPasswordForEmail(email, {
-    emailRedirectTo: `${import.meta.env.VITE_APP_URL}/login`,
+    redirectTo: loginUrl,
   })
 }
 
