@@ -12,9 +12,9 @@
     </div>
 
     <p>
-      <span class="font-bold">Players:</span>
+      <span class="font-bold">Online:</span>
       <span :class="seatCount === 2 ? 'text-green-600' : 'text-yellow-300'">
-        &nbsp;{{ seatCount }} / 2
+        &nbsp;{{ seatCount }} / 4
       </span>
     </p>
 
