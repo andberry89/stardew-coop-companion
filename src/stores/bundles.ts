@@ -16,6 +16,7 @@ import { buildSeasonView } from '@/lib/bundles/seasonView'
 import { buildBundlesByRoomView, buildBundlesView } from '@/lib/bundles/views'
 import { buildStateCode, parseStateCode } from '@/lib/bundles/stateCode'
 import { supabase } from '@/lib/supabase'
+import { getProfilesByIds } from '@/lib/profiles'
 
 import type {
   Bundle,
@@ -39,6 +40,7 @@ type BundlesState = {
   unsubscribeFarmChannel: (() => void) | null
   unsubscribeSessionChannel: (() => void) | null
   activeSessionUserIds: string[]
+  activeSessionPlayers: ActiveFarmPlayer[]
   roomsById: Record<RoomId, Room>
   itemsById: Record<string, Item>
   bundlesById: Record<string, Bundle>
@@ -68,6 +70,7 @@ export const useBundlesStore = defineStore('bundles', {
     unsubscribeFarmChannel: null as (() => void) | null,
     unsubscribeSessionChannel: null as (() => void) | null,
     activeSessionUserIds: [] as string[],
+    activeSessionPlayers: [] as ActiveFarmPlayer[],
 
     // ─────────────────────────────
     // Catalog Data (static)
@@ -337,6 +340,7 @@ export const useBundlesStore = defineStore('bundles', {
       this.farmSessionId = null
       this.selectedFarm = null
       this.activeSessionUserIds = []
+      this.activeSessionPlayers = []
       this.farmStatus = 'idle'
     },
 
@@ -371,6 +375,47 @@ export const useBundlesStore = defineStore('bundles', {
       })
     },
 
+    // Subscribe to farm session presence changes so the UI can reflect
+    // the current co-op player roster.
+    async refreshActiveSessionPlayers() {
+      if (!this.activeSessionUserIds.length) {
+        this.activeSessionPlayers = []
+        return
+      }
+
+      try {
+        const profiles = await getProfilesByIds(this.activeSessionUserIds)
+
+        const profileById = Object.fromEntries(
+          profiles.map((p) => [
+            p.id,
+            {
+              displayName: p.display_name?.trim() || 'Unknown Farmer',
+              avatar: p.avatar ?? null,
+            },
+          ]),
+        )
+
+        this.activeSessionPlayers = this.activeSessionUserIds.map((userId) => {
+          const profile = profileById[userId]
+
+          return {
+            id: userId,
+            displayName: profile?.displayName ?? 'Unknown Farmer',
+            avatar: profile?.avatar ?? null,
+          }
+        })
+      } catch (error) {
+        console.warn('Failed to load active session players:', error)
+
+        this.activeSessionPlayers = this.activeSessionUserIds.map((userId) => ({
+          id: userId,
+          displayName: 'Unknown Farmer',
+          avatar: null,
+        }))
+      }
+    },
+
     // Track active users connected to the farm so the UI can reflect
     // co-op presence (e.g., partner display and seat count).
     subscribeToSessions() {
@@ -382,8 +427,9 @@ export const useBundlesStore = defineStore('bundles', {
       }
 
       this.unsubscribeSessionChannel = createFarmSessionsChannel(this.currentFarmId, {
-        onSessionUsersChange: (userIds) => {
+        onSessionUsersChange: async (userIds) => {
           this.activeSessionUserIds = userIds
+          await this.refreshActiveSessionPlayers()
         },
       })
     },

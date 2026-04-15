@@ -21,6 +21,24 @@ export async function getProfile(userId: string): Promise<Profile | null> {
   return data
 }
 
+// Fetch multiple profiles by their user IDs.
+export async function getProfilesByIds(userIds: string[]) {
+  if (!userIds.length) {
+    return []
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, display_name, avatar')
+    .in('id', userIds)
+
+  if (error) {
+    throw error
+  }
+
+  return data ?? []
+}
+
 // Fetch only the avatar field for lightweight lookups.
 export async function getProfileAvatar(userId: string): Promise<string | null> {
   const { data, error } = await supabase.from('profiles').select('avatar').eq('id', userId).single()
