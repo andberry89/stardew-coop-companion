@@ -21,6 +21,7 @@
 
     <AccountFarmsPanel
       :farms="farms"
+      :farmMembersByFarmId="farmMembersByFarmId"
       :isEditing="isEditing"
       :currentUserId="currentUserId"
       :leavingFarmId="leavingFarmId"
@@ -95,6 +96,7 @@ const {
   deleteFarmLoading,
   connectingFarmId,
   avatarOptions,
+  farmMembersByFarmId,
   logout,
   saveProfile,
   cancelEdit,

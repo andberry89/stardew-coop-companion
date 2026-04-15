@@ -22,6 +22,38 @@
         </div>
 
         <div class="text-md text-gray-600">Code: {{ farm.code }}</div>
+        <div v-if="farmMembersByFarmId[farm.id]?.length" class="pt-2">
+          <div class="flex flex-wrap gap-3">
+            <div
+              v-for="member in farmMembersByFarmId[farm.id]"
+              :key="member.user_id"
+              class="flex w-16 flex-col items-center gap-1 text-center"
+            >
+              <div
+                class="h-12 w-12 rounded-md border-item overflow-hidden bg-amber-100"
+                :title="member.profiles?.display_name ?? 'Unknown Farmer'"
+              >
+                <img
+                  v-if="member.profiles?.avatar"
+                  :src="`/images/avatars/${member.profiles.avatar}-icon.png`"
+                  :alt="member.profiles?.display_name ?? 'Unknown Farmer'"
+                  class="h-full w-full object-contain pixel-art"
+                />
+
+                <div
+                  v-else
+                  class="flex h-full w-full items-center justify-center text-xs text-amber-900/60"
+                >
+                  ?
+                </div>
+              </div>
+
+              <div class="text-xs leading-tight text-green-950">
+                {{ member.profiles?.display_name ?? 'Unknown Farmer' }}
+              </div>
+            </div>
+          </div>
+        </div>
 
         <button :disabled="connecting" :class="connectButtonClass" @click="emit('connect', farm)">
           Connect
@@ -51,10 +83,19 @@
 </template>
 
 <script setup lang="ts">
-import type { Farm } from '@/types'
-
 defineProps<{
   farms: Farm[]
+  farmMembersByFarmId: Record<
+    string,
+    {
+      user_id: string
+      role: string
+      profiles: {
+        display_name: string | null
+        avatar: string | null
+      } | null
+    }[]
+  >
   isEditing: boolean
   currentUserId: string | null
   leavingFarmId: string | null
