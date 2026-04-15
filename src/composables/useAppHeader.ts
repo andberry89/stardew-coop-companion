@@ -1,12 +1,13 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
-import { getProfileAvatar, getProfileDisplayName } from '@/lib/profiles'
+import { getProfileAvatar } from '@/lib/profiles'
 import { getStateCodeErrorMessage } from '@/lib/bundles/stateCode'
 import { getErrorMessage, logError } from '@/lib/errors'
 import { disconnectCurrentFarmIfNeeded, logoutWithFarmDisconnect } from '@/lib/session'
 import { useBundlesStore } from '@/stores/bundles'
 import { useToast } from '@/composables/useToast'
+import { type ActiveFarmPlayer } from '@/types'
 
 export function useAppHeader() {
   const store = useBundlesStore()
@@ -16,8 +17,7 @@ export function useAppHeader() {
   // ─────────────────────────────
   // Header State
   // ─────────────────────────────
-  const partnerDisplayName = ref<string | null>(null)
-  const currentUserId = ref<string | null>(null)
+  const players = ref<ActiveFarmPlayer[]>([])
   const currentAvatar = ref<string | null>(null)
   const modalType = ref<'export' | 'import' | null>(null)
   const exportCode = ref<string | null>(null)
@@ -45,7 +45,6 @@ export function useAppHeader() {
   // the signed-in user id and avatar for the menu UI.
   async function initializeHeader() {
     const { data } = await supabase.auth.getUser()
-    currentUserId.value = data.user?.id ?? null
 
     if (!data.user) {
       return
@@ -55,26 +54,14 @@ export function useAppHeader() {
   }
 
   // ─────────────────────────────
-  // Partner Presence
+  // Active Player Seats
   // ─────────────────────────────
-  // Track active session users and display the other connected
-  // player in co-op when two users are present.
+  // Mirror the store's active session display names into the header so the
+  // farm status panel can render all occupied seats.
   watch(
-    () => store.activeSessionUserIds,
-    async (ids) => {
-      if (!currentUserId.value || ids.length < 2) {
-        partnerDisplayName.value = null
-        return
-      }
-
-      // In co-op, show the other active player when a second session is connected.
-      const partnerId = ids.find((id) => id !== currentUserId.value)
-      if (!partnerId) {
-        partnerDisplayName.value = null
-        return
-      }
-
-      partnerDisplayName.value = await getProfileDisplayName(partnerId)
+    () => store.activeSessionPlayers,
+    (p) => {
+      players.value = p
     },
     { immediate: true },
   )
@@ -190,7 +177,7 @@ export function useAppHeader() {
 
   return {
     store,
-    partnerDisplayName,
+    players,
     currentAvatar,
     modalType,
     exportCode,

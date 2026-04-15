@@ -15,7 +15,7 @@
     <HeaderLogo />
 
     <HeaderFarmStatus
-      :partnerDisplayName="partnerDisplayName"
+      :players="players"
       :seatCount="seatCount"
       :farmName="farmName"
       :farmCode="farmCode"
@@ -50,7 +50,7 @@ import { useAppHeader } from '@/composables/useAppHeader'
 
 const {
   store,
-  partnerDisplayName,
+  players,
   currentAvatar,
   modalType,
   exportCode,

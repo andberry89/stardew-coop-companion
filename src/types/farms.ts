@@ -18,3 +18,10 @@ export type FarmConnectionStatus =
 
 // Minimal farm data stored in UI state when a farm is selected.
 export type SelectedFarm = Pick<Farm, 'id' | 'name' | 'code'>
+
+// Farm status data received from the server in realtime while connected to a farm session.
+export type ActiveFarmPlayer = {
+  id: string
+  displayName: string
+  avatar: string | null
+}

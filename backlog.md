@@ -8,11 +8,6 @@
 
 ## Active TODOs
 
-### Farm Management
-
-- Farm owner can see who has membership to their farms
-- Increase max seats on a farm to 4
-
 ### Auth & Signup Flow
 
 - Fix email confirmation flow
