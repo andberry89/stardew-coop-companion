@@ -396,7 +396,7 @@ export const useBundlesStore = defineStore('bundles', {
           ]),
         )
 
-        this.activeSessionPlayers = this.activeSessionUserIds.map((userId) => {
+        const players = this.activeSessionUserIds.map((userId) => {
           const profile = profileById[userId]
 
           return {
@@ -404,6 +404,17 @@ export const useBundlesStore = defineStore('bundles', {
             displayName: profile?.displayName ?? 'Unknown Farmer',
             avatar: profile?.avatar ?? null,
           }
+        })
+
+        const { data } = await supabase.auth.getUser()
+        const currentUserId = data.user?.id ?? null
+
+        // Sort players with the current user first, then alphabetically by display name.
+        this.activeSessionPlayers = players.sort((a, b) => {
+          if (a.id === currentUserId) return -1
+          if (b.id === currentUserId) return 1
+
+          return a.displayName.localeCompare(b.displayName)
         })
       } catch (error) {
         console.warn('Failed to load active session players:', error)
