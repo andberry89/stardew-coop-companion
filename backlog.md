@@ -23,10 +23,6 @@
   - Better feedback
   - Better post-confirmation experience
 
-### Infrastructure
-
-- Set up a GitHub Action to ping the database twice a week to keep it active
-
 ---
 
 ## Future Features
