@@ -36,3 +36,7 @@
 - Shared farm visibility
 - Invite / accept / reject flow
 - No persistent messaging
+
+### Gifting Guide
+
+### Notes Capability
