@@ -2,7 +2,7 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { buildFlashQuery } from '@/lib/flash'
 import { supabase } from '@/lib/supabase'
-import { getMyFarms, getFarmByCode } from '@/lib/farms'
+import { getMyFarms, getFarmByCode, getFarmMembers } from '@/lib/farms'
 import { getProfile, updateProfile } from '@/lib/profiles'
 import { getErrorMessage, logError } from '@/lib/errors'
 import { logoutWithFarmDisconnect } from '@/lib/session'
@@ -39,6 +39,7 @@ export function useAccountPage() {
   const leavingFarmId = ref<string | null>(null)
   const deleteFarmLoading = ref(false)
   const connectingFarmId = ref<string | null>(null)
+  const farmMembersByFarmId = ref<Record<string, Awaited<ReturnType<typeof getFarmMembers>>>>({})
 
   const avatarOptions = AVATAR_OPTIONS
 
@@ -66,6 +67,16 @@ export function useAccountPage() {
     }
 
     farms.value = await getMyFarms()
+
+    // Fetch all farm members for the user's farms
+    // so the account page can show member avatars and display names
+    for (const farm of farms.value) {
+      try {
+        farmMembersByFarmId.value[farm.id] = await getFarmMembers(farm.id)
+      } catch (error) {
+        logError('fetch farm members failed', error)
+      }
+    }
 
     // If the user last opened a farm, reconnect automatically from the
     // account page as long as that farm still exists in their farm list.
@@ -439,6 +450,7 @@ export function useAccountPage() {
     deleteFarmLoading,
     connectingFarmId,
     avatarOptions,
+    farmMembersByFarmId,
     logout,
     saveProfile,
     cancelEdit,

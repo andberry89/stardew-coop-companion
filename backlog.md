@@ -18,6 +18,13 @@
   - Better feedback
   - Better post-confirmation experience
 
+### Bundle Progress Improvement
+
+- Mark an item as complete when bundle is complete
+  - Some bundles don't require every item to be considered complete
+  - When this happens an item might show up as needed even when the bundle has been completed
+  - Like the 'Crab Pot' bundle
+
 ---
 
 ## Future Features
