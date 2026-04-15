@@ -68,17 +68,13 @@ export function useAccountPage() {
 
     farms.value = await getMyFarms()
 
-    // Fetch members for farms owned by the current user
-    if (currentUserId.value) {
-      const ownedFarms = farms.value.filter((f) => f.created_by === currentUserId.value)
-
-      for (const farm of ownedFarms) {
-        try {
-          const members = await getFarmMembers(farm.id)
-          farmMembersByFarmId.value[farm.id] = members
-        } catch (error) {
-          logError('fetch farm members failed', error)
-        }
+    // Fetch all farm members for the user's farms
+    // so the account page can show member avatars and display names
+    for (const farm of farms.value) {
+      try {
+        farmMembersByFarmId.value[farm.id] = await getFarmMembers(farm.id)
+      } catch (error) {
+        logError('fetch farm members failed', error)
       }
     }
 

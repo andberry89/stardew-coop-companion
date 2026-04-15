@@ -52,13 +52,6 @@ export async function getFarmMembers(farmId: string): Promise<FarmMemberWithProf
     ]),
   )
 
-  const missingProfileUserIds = userIds.filter((userId) => !profileById[userId])
-
-  console.log('farm member count', members?.length ?? 0)
-  console.log('profile count', profiles?.length ?? 0)
-  console.log('missing profile user ids', missingProfileUserIds)
-  console.log('raw members', members)
-
   return (members ?? []).map((member) => ({
     user_id: member.user_id,
     role: member.role,
